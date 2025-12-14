@@ -8,7 +8,7 @@ $business = [
   'phone'      => '+55 11 99999-9999',
   'whatsapp'   => 'https://wa.me/5511999999999?text=Quero%20agendar%20um%20servi%C3%A7o%20para%20meu%20pet',
   'email'      => 'contato@pet360.com.br',
-  'logo'       => 'https://placehold.co/160x48/0f5c47/ffffff?text=Pet360',
+  'logo'       => './img/logo-pet360-2.png',
   'priceRange' => '$$',
   'address'    => [
     'street' => 'Rua das Patinhas, 360',
@@ -24,9 +24,9 @@ $business = [
   ],
   'heroImg'    => 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1600&auto=format&fit=crop',
   'serviceImgs'=> [
-    'adestramento' => 'https://images.unsplash.com/photo-1525253056310-8c963a0f2043?q=80&w=1200&auto=format&fit=crop',
-    'passeios'     => 'https://images.unsplash.com/photo-1517849845537-4d257902454a?q=80&w=1200&auto=format&fit=crop',
-    'banho'        => 'https://images.unsplash.com/photo-1619983086980-3d1c90ff8e9d?q=80&w=1200&auto=format&fit=crop',
+    'adestramento' => './img/adestramento.jpg',
+    'passeios'     => './img/passeio.jpg',
+    'banho'        => './img/banho.jpg',
   ],
 ];
 
@@ -40,6 +40,7 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
   <title><?= esc($business['name']) ?> — Adestramento, Passeios, Banho & Tosa</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Adestramento, passeios, banho e tosa com profissionais certificados. Agendamento fácil por WhatsApp.">
+  <link rel="icon" type="image/png" href="./img/favicon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -98,7 +99,7 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
   <header class="sticky top-0 z-50 border-b" style="background:rgba(246,239,228,0.92);backdrop-filter:blur(18px);">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
       <a href="#top" class="flex items-center gap-3">
-        <img src="<?= esc($business['logo']) ?>" alt="<?= esc($business['name']) ?>" class="h-10">
+        <img src="<?= esc($business['logo']) ?>" alt="<?= esc($business['name']) ?>" class="h-20">
       </a>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium">
         <a href="#hero" class="transition-colors hover:text-emerald-600">Home</a>
@@ -419,7 +420,7 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
   <footer class="border-t" style="background:var(--color-cream-soft);">
     <div class="container mx-auto px-4 py-10 grid md:grid-cols-4 gap-8 text-sm">
       <div class="space-y-4">
-        <img src="<?= esc($business['logo']) ?>" alt="<?= esc($business['name']) ?>" class="h-8">
+        <img src="<?= esc($business['logo']) ?>" alt="<?= esc($business['name']) ?>" class="h-16">
         <p class="text-slate-700">Cuidado integral que une adestramento, companhia e bem-estar com muita transparência.</p>
         <div class="flex gap-4">
           <a href="<?= esc($business['whatsapp']) ?>" class="text-emerald-700 font-semibold">WhatsApp</a>
