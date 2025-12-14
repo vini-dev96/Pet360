@@ -35,17 +35,23 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Criar tabela `usuarios` com estrutura adequada
 - [x] Criar arquivo de configuração de conexão (`config/database.php`)
 
-### 2. Página de Criação de Conta (`criar-conta.php`)
-- [ ] Criar página de registro de novos usuários
-- [ ] Formulário com campos: nome, email, telefone, senha, confirmar senha
-- [ ] Validação de dados no frontend (JavaScript)
-- [ ] Validação de dados no backend (PHP)
-- [ ] Verificar se email já existe no banco
-- [ ] Hash da senha antes de salvar (password_hash)
-- [ ] Mensagens de erro/sucesso
-- [ ] Design consistente com o tema do site (Tailwind CSS)
-- [ ] Link para página de login
-- [ ] Redirecionamento após cadastro bem-sucedido
+### 2. Modal de Criação de Conta no `index.php` ✅
+- [x] Criar modal de registro de novos usuários (popup animado)
+- [x] Formulário com campos: nome, email, telefone, senha, confirmar senha
+- [x] Validação de dados no frontend (JavaScript)
+- [x] Validação de dados no backend (PHP)
+- [x] Verificar se email já existe no banco
+- [x] Hash da senha antes de salvar (password_hash)
+- [x] Mensagens de erro/sucesso
+- [x] Design consistente com o tema do site (Tailwind CSS)
+- [x] Máscara de telefone (formato brasileiro)
+- [x] Envio apenas de números para o banco de dados
+- [x] Animação moderna de abertura/fechamento do modal
+- [x] Fundo embaçado (backdrop blur)
+- [x] Mensagem de sucesso com contador e redirecionamento automático
+- [x] Botão para mostrar/ocultar senha (ícone de olho)
+- [x] Validação de senha forte (mínimo 7 caracteres, 1 maiúscula, 1 caractere especial)
+- [x] Link para modal de login (a ser implementado)
 
 ### 3. Modal de Login no `index.php`
 - [ ] Adicionar botão "Login" no header (superior direito, ao lado de "Agendar agora")

@@ -1,5 +1,6 @@
 <?php
 // index.php — Landing page Pets (PHP + Tailwind)
+session_start();
 
 // ---- CONFIGURAÇÃO RÁPIDA ----
 $business = [
@@ -113,6 +114,9 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
         <a href="tel:<?= esc($phoneTel) ?>" class="hidden sm:flex items-center gap-2 text-sm font-semibold btn-link">
           <?= esc($business['phone']) ?>
         </a>
+        <button onclick="abrirModalCriarConta()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md">
+          Criar Conta
+        </button>
         <a href="<?= esc($business['whatsapp']) ?>" class="rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
           Agendar agora
         </a>
@@ -513,6 +517,485 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
       'acceptedAnswer'=>['@type'=>'Answer','text'=>$f['a']]
     ], $faq)
   ], JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_PRETTY_PRINT) ?>
+  </script>
+
+  <!-- Modal Criar Conta -->
+  <div id="modalCriarConta" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="p-8">
+        <!-- Header do Modal -->
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-extrabold">Criar Conta</h2>
+          <button onclick="fecharModalCriarConta()" class="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mensagem de Sucesso -->
+        <div id="mensagemSucesso" class="hidden mb-6 p-6 bg-green-50 border border-green-200 rounded-xl text-center">
+          <div class="mb-3">
+            <svg class="mx-auto h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-green-800 mb-2">Conta criada com sucesso!</h3>
+          <p class="text-sm text-green-700 mb-4">Sua conta foi criada com sucesso. Você será redirecionado para a página inicial em <span id="countdown">5</span> segundos.</p>
+          <button onclick="window.location.href='index.php'" class="inline-block rounded-xl px-6 py-2 text-sm font-semibold btn-primary hover:shadow-md transition-all">
+            Ir para página inicial agora
+          </button>
+        </div>
+
+        <!-- Mensagens de Erro -->
+        <div id="mensagensErro" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <ul id="listaErros" class="list-disc list-inside text-sm text-red-700">
+          </ul>
+        </div>
+
+        <!-- Formulário -->
+        <form id="formCriarConta" action="auth/register.php" method="POST" class="space-y-5">
+          <div>
+            <label for="modal_nome" class="block text-sm font-semibold mb-2">Nome Completo *</label>
+            <input 
+              type="text" 
+              id="modal_nome" 
+              name="nome" 
+              required
+              class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Seu nome completo"
+            >
+          </div>
+
+          <div>
+            <label for="modal_email" class="block text-sm font-semibold mb-2">Email *</label>
+            <input 
+              type="email" 
+              id="modal_email" 
+              name="email" 
+              required
+              class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="seu@email.com"
+            >
+          </div>
+
+          <div>
+            <label for="modal_telefone" class="block text-sm font-semibold mb-2">Telefone (opcional)</label>
+            <input 
+              type="tel" 
+              id="modal_telefone" 
+              name="telefone" 
+              class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="(11) 99999-9999"
+              maxlength="15"
+            >
+          </div>
+
+          <div>
+            <label for="modal_senha" class="block text-sm font-semibold mb-2">Senha *</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="modal_senha" 
+                name="senha" 
+                required
+                minlength="7"
+                class="w-full px-4 py-3 pr-12 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Mínimo 7 caracteres"
+              >
+              <button 
+                type="button" 
+                id="toggleSenha" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none"
+                aria-label="Mostrar senha"
+              >
+                <svg id="iconSenhaAberta" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg id="iconSenhaFechada" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                </svg>
+              </button>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Mínimo 7 caracteres, 1 letra maiúscula e 1 caractere especial</p>
+          </div>
+
+          <div>
+            <label for="modal_confirmar_senha" class="block text-sm font-semibold mb-2">Confirmar Senha *</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="modal_confirmar_senha" 
+                name="confirmar_senha" 
+                required
+                minlength="7"
+                class="w-full px-4 py-3 pr-12 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Digite a senha novamente"
+              >
+              <button 
+                type="button" 
+                id="toggleConfirmarSenha" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none"
+                aria-label="Mostrar senha"
+              >
+                <svg id="iconConfirmarSenhaAberta" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg id="iconConfirmarSenhaFechada" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            class="w-full rounded-2xl px-6 py-3 text-base font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
+          >
+            Criar Conta
+          </button>
+        </form>
+
+        <div class="mt-6 text-center">
+          <p class="text-sm text-slate-600">
+            Já tem uma conta? 
+            <a href="#" onclick="fecharModalCriarConta(); return false;" class="font-semibold btn-link">Fazer login</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      transition: opacity 0.3s ease-out;
+    }
+    
+    .modal-backdrop.show {
+      opacity: 1;
+      animation: fadeInBackdrop 0.3s ease-out;
+    }
+    
+    @keyframes fadeInBackdrop {
+      from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+      }
+      to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+    }
+    
+    /* Modal Content */
+    .modal-content {
+      transform: translateY(20px) scale(0.95);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    
+    #modalCriarConta.show {
+      display: flex !important;
+    }
+    
+    #modalCriarConta.show .modal-content {
+      animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    
+    @keyframes modalSlideIn {
+      0% {
+        transform: translateY(30px) scale(0.9);
+        opacity: 0;
+      }
+      60% {
+        transform: translateY(-5px) scale(1.02);
+      }
+      100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+    
+    /* Animação de saída */
+    #modalCriarConta.closing .modal-content {
+      animation: modalSlideOut 0.3s ease-in forwards;
+    }
+    
+    #modalCriarConta.closing {
+      animation: fadeOutBackdrop 0.3s ease-in forwards;
+    }
+    
+    @keyframes modalSlideOut {
+      from {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(20px) scale(0.95);
+        opacity: 0;
+      }
+    }
+    
+    @keyframes fadeOutBackdrop {
+      from {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      to {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+      }
+    }
+    
+    .input-error {
+      border-color: #dc2626 !important;
+      animation: shake 0.3s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
+
+  <script>
+    // Funções para abrir/fechar modal
+    function abrirModalCriarConta() {
+      const modal = document.getElementById('modalCriarConta');
+      modal.style.display = 'flex';
+      // Pequeno delay para garantir que o display está aplicado antes da animação
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModalCriarConta() {
+      const modal = document.getElementById('modalCriarConta');
+      modal.classList.add('closing');
+      modal.classList.remove('show');
+      
+      // Aguardar animação de saída antes de esconder
+      setTimeout(() => {
+        modal.classList.remove('closing');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        // Limpar formulário
+        document.getElementById('formCriarConta').reset();
+        document.getElementById('mensagensErro').classList.add('hidden');
+        document.getElementById('mensagemSucesso').classList.add('hidden');
+        // Restaurar formulário se estava escondido
+        document.getElementById('formCriarConta').style.display = 'block';
+      }, 300);
+    }
+
+    // Fechar modal ao clicar fora
+    document.getElementById('modalCriarConta').addEventListener('click', function(e) {
+      if (e.target === this) {
+        fecharModalCriarConta();
+      }
+    });
+
+    // Fechar modal com ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        fecharModalCriarConta();
+      }
+    });
+
+    // Máscara de telefone no modal
+    document.addEventListener('DOMContentLoaded', function() {
+      const telefoneInput = document.getElementById('modal_telefone');
+      
+      if (telefoneInput) {
+        telefoneInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          
+          if (value.length <= 11) {
+            if (value.length <= 10) {
+              value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+            } else {
+              value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+            }
+            e.target.value = value;
+          }
+        });
+      }
+
+      // Toggle mostrar/ocultar senha
+      const toggleSenha = document.getElementById('toggleSenha');
+      const senhaInput = document.getElementById('modal_senha');
+      const iconSenhaAberta = document.getElementById('iconSenhaAberta');
+      const iconSenhaFechada = document.getElementById('iconSenhaFechada');
+
+      if (toggleSenha && senhaInput) {
+        toggleSenha.addEventListener('click', function() {
+          const type = senhaInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          senhaInput.setAttribute('type', type);
+          
+          if (type === 'text') {
+            iconSenhaAberta.classList.remove('hidden');
+            iconSenhaFechada.classList.add('hidden');
+            toggleSenha.setAttribute('aria-label', 'Ocultar senha');
+          } else {
+            iconSenhaAberta.classList.add('hidden');
+            iconSenhaFechada.classList.remove('hidden');
+            toggleSenha.setAttribute('aria-label', 'Mostrar senha');
+          }
+        });
+      }
+
+      // Toggle mostrar/ocultar confirmar senha
+      const toggleConfirmarSenha = document.getElementById('toggleConfirmarSenha');
+      const confirmarSenhaInput = document.getElementById('modal_confirmar_senha');
+      const iconConfirmarSenhaAberta = document.getElementById('iconConfirmarSenhaAberta');
+      const iconConfirmarSenhaFechada = document.getElementById('iconConfirmarSenhaFechada');
+
+      if (toggleConfirmarSenha && confirmarSenhaInput) {
+        toggleConfirmarSenha.addEventListener('click', function() {
+          const type = confirmarSenhaInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          confirmarSenhaInput.setAttribute('type', type);
+          
+          if (type === 'text') {
+            iconConfirmarSenhaAberta.classList.remove('hidden');
+            iconConfirmarSenhaFechada.classList.add('hidden');
+            toggleConfirmarSenha.setAttribute('aria-label', 'Ocultar senha');
+          } else {
+            iconConfirmarSenhaAberta.classList.add('hidden');
+            iconConfirmarSenhaFechada.classList.remove('hidden');
+            toggleConfirmarSenha.setAttribute('aria-label', 'Mostrar senha');
+          }
+        });
+      }
+    });
+
+    // Função para validar senha forte
+    function validarSenha(senha) {
+      const erros = [];
+      
+      if (senha.length < 7) {
+        erros.push('A senha deve ter no mínimo 7 caracteres');
+      }
+      
+      if (!/[A-Z]/.test(senha)) {
+        erros.push('A senha deve conter pelo menos 1 letra maiúscula');
+      }
+      
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(senha)) {
+        erros.push('A senha deve conter pelo menos 1 caractere especial');
+      }
+      
+      return erros;
+    }
+
+    // Validação e envio do formulário
+    document.getElementById('formCriarConta').addEventListener('submit', function(e) {
+      // Remove formatação do telefone antes de enviar
+      const telefoneInput = document.getElementById('modal_telefone');
+      if (telefoneInput && telefoneInput.value) {
+        const numeros = telefoneInput.value.replace(/\D/g, '');
+        telefoneInput.value = numeros;
+      }
+      
+      const senha = document.getElementById('modal_senha').value;
+      const confirmarSenha = document.getElementById('modal_confirmar_senha').value;
+      const erros = [];
+      
+      // Validar senha forte
+      const errosSenha = validarSenha(senha);
+      erros.push(...errosSenha);
+      
+      // Verificar se as senhas coincidem
+      if (senha !== confirmarSenha) {
+        erros.push('As senhas não coincidem!');
+      }
+      
+      if (erros.length > 0) {
+        e.preventDefault();
+        mostrarErro(erros);
+        return false;
+      }
+    });
+
+    function mostrarErro(erros) {
+      const mensagensErro = document.getElementById('mensagensErro');
+      const listaErros = document.getElementById('listaErros');
+      listaErros.innerHTML = '';
+      erros.forEach(erro => {
+        const li = document.createElement('li');
+        li.textContent = erro;
+        listaErros.appendChild(li);
+      });
+      mensagensErro.classList.remove('hidden');
+    }
+
+    // Verificar se há sucesso na URL e mostrar mensagem
+    <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'registro'): ?>
+      document.addEventListener('DOMContentLoaded', function() {
+        abrirModalCriarConta();
+        document.getElementById('formCriarConta').style.display = 'none';
+        document.getElementById('mensagemSucesso').classList.remove('hidden');
+        
+        let countdown = 5;
+        const countdownElement = document.getElementById('countdown');
+        const interval = setInterval(() => {
+          countdown--;
+          if (countdownElement) {
+            countdownElement.textContent = countdown;
+          }
+          if (countdown <= 0) {
+            clearInterval(interval);
+            window.location.href = 'index.php';
+          }
+        }, 1000);
+      });
+    <?php endif; ?>
+
+    // Verificar se há erros na sessão
+    <?php 
+    if (isset($_SESSION['erros_registro'])): 
+      $erros = $_SESSION['erros_registro'];
+      $dados = $_SESSION['dados_registro'] ?? [];
+      unset($_SESSION['erros_registro'], $_SESSION['dados_registro']);
+      
+      // Formatar telefone se houver
+      if (!empty($dados['telefone'])) {
+        $telefone_numeros = preg_replace('/\D/', '', $dados['telefone']);
+        if (strlen($telefone_numeros) == 10) {
+          $dados['telefone'] = preg_replace('/(\d{2})(\d{4})(\d{4})/', '($1) $2-$3', $telefone_numeros);
+        } elseif (strlen($telefone_numeros) == 11) {
+          $dados['telefone'] = preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $telefone_numeros);
+        }
+      }
+    ?>
+      document.addEventListener('DOMContentLoaded', function() {
+        abrirModalCriarConta();
+        mostrarErro(<?= json_encode($erros, JSON_UNESCAPED_UNICODE) ?>);
+        <?php if (!empty($dados)): ?>
+          <?php if (!empty($dados['nome'])): ?>
+            document.getElementById('modal_nome').value = <?= json_encode($dados['nome'], JSON_UNESCAPED_UNICODE) ?>;
+          <?php endif; ?>
+          <?php if (!empty($dados['email'])): ?>
+            document.getElementById('modal_email').value = <?= json_encode($dados['email'], JSON_UNESCAPED_UNICODE) ?>;
+          <?php endif; ?>
+          <?php if (!empty($dados['telefone'])): ?>
+            document.getElementById('modal_telefone').value = <?= json_encode($dados['telefone'], JSON_UNESCAPED_UNICODE) ?>;
+          <?php endif; ?>
+        <?php endif; ?>
+      });
+    <?php endif; ?>
   </script>
 </body>
 </html>

@@ -119,7 +119,7 @@ if (testDatabaseConnection()) {
 ## Próximos Passos
 
 Após configurar o banco de dados, você pode:
-1. Criar a página de registro (`criar-conta.php`)
+1. Criar o modal de registro (no `index.php`) ✅
 2. Criar o sistema de login (modal no `index.php`)
 3. Criar a página de dashboard (`dashboard.php`)
 
