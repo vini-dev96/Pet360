@@ -10,7 +10,7 @@ if (!isset($_SESSION['usuario_logado']) || !$_SESSION['usuario_logado']) {
 
 require_once __DIR__ . '/config/database.php';
 
-// Buscar informações atualizadas do usuário
+// Buscar informações atualizadas do usuário e seus pets
 try {
     $pdo = getDatabaseConnection();
     $stmt = $pdo->prepare("SELECT id, nome, email, telefone, data_criacao, data_atualizacao FROM usuarios WHERE id = :id");
@@ -23,6 +23,12 @@ try {
         header('Location: index.php');
         exit;
     }
+    
+    // Buscar pets do usuário
+    $stmtPets = $pdo->prepare("SELECT id, nome, idade, raca, tipo, foto, data_criacao FROM pets WHERE usuario_id = :usuario_id AND ativo = 1 ORDER BY data_criacao DESC");
+    $stmtPets->execute(['usuario_id' => $_SESSION['usuario_id']]);
+    $pets = $stmtPets->fetchAll();
+    
 } catch (PDOException $e) {
     error_log('Erro ao buscar dados do usuário: ' . $e->getMessage());
     $usuario = [
@@ -31,6 +37,7 @@ try {
         'telefone' => '',
         'data_criacao' => date('Y-m-d H:i:s')
     ];
+    $pets = [];
 }
 
 function esc($s){ return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
@@ -218,6 +225,88 @@ $business = [
             </div>
         </div>
 
+        <!-- Seção Meus Pets -->
+        <div class="card p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Meus Pets</h2>
+                <button onclick="abrirModalAdicionarPet()" class="rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Adicionar Pet
+                </button>
+            </div>
+            
+            <?php if (empty($pets)): ?>
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-16 w-16 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <p class="text-slate-500 text-sm mb-4">Você ainda não cadastrou nenhum pet</p>
+                    <button onclick="abrirModalAdicionarPet()" class="inline-block rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
+                        Cadastrar Primeiro Pet
+                    </button>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <?php foreach ($pets as $pet): ?>
+                        <div class="border border-slate-200 rounded-xl p-4 hover:border-emerald-500 hover:shadow-md transition-all">
+                            <div class="flex items-start justify-between mb-3">
+                                <div class="flex items-center gap-3">
+                                    <?php if (!empty($pet['foto'])): ?>
+                                        <img src="<?= esc($pet['foto']) ?>" alt="<?= esc($pet['nome']) ?>" class="w-16 h-16 rounded-lg object-cover">
+                                    <?php else: ?>
+                                        <div class="w-16 h-16 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                            </svg>
+                                        </div>
+                                    <?php endif; ?>
+                                    <div>
+                                        <h3 class="font-bold text-slate-900"><?= esc($pet['nome']) ?></h3>
+                                        <p class="text-xs text-slate-500 capitalize"><?= esc($pet['tipo']) ?></p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button onclick="abrirModalEditarPet(<?= $pet['id'] ?>, '<?= esc(addslashes($pet['nome'])) ?>', '<?= esc(addslashes($pet['tipo'])) ?>', '<?= esc(addslashes($pet['raca'] ?? '')) ?>', <?= $pet['idade'] ?? 'null' ?>, '<?= esc(addslashes($pet['foto'] ?? '')) ?>')" class="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="confirmarExcluirPet(<?= $pet['id'] ?>, '<?= esc(addslashes($pet['nome'])) ?>')" class="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2 text-sm">
+                                <?php if (!empty($pet['raca'])): ?>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500">Raça:</span>
+                                        <span class="font-semibold text-slate-900"><?= esc($pet['raca']) ?></span>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if (!empty($pet['idade'])): ?>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500">Idade:</span>
+                                        <span class="font-semibold text-slate-900"><?= esc($pet['idade']) ?> <?= $pet['idade'] == 1 ? 'ano' : 'anos' ?></span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-200">
+                                <div class="flex gap-2">
+                                    <a href="index.php#servicos" class="flex-1 text-center rounded-lg px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
+                                        Agendar Serviço
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <!-- Ações Rápidas -->
         <div class="card p-6 mb-8">
             <h2 class="text-xl font-bold text-slate-900 mb-4">Ações Rápidas</h2>
@@ -258,5 +347,526 @@ $business = [
             </div>
         </div>
     </footer>
+
+    <!-- Modal Adicionar Pet -->
+    <div id="modalAdicionarPet" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <!-- Header do Modal -->
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-extrabold">Adicionar Pet</h2>
+                    <button onclick="fecharModalAdicionarPet()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mensagens de Erro -->
+                <div id="mensagensErroPet" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <ul id="listaErrosPet" class="list-disc list-inside text-sm text-red-700">
+                    </ul>
+                </div>
+
+                <!-- Mensagem de Sucesso -->
+                <div id="mensagemSucessoPet" class="hidden mb-6 p-6 bg-green-50 border border-green-200 rounded-xl text-center">
+                    <div class="mb-3">
+                        <svg class="mx-auto h-12 w-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-green-800 mb-2">Pet cadastrado com sucesso!</h3>
+                    <p class="text-sm text-green-700 mb-4">Seu pet foi cadastrado e já pode agendar serviços.</p>
+                    <button onclick="window.location.href='dashboard.php'" class="inline-block rounded-xl px-6 py-2 text-sm font-semibold btn-primary hover:shadow-md transition-all">
+                        Fechar
+                    </button>
+                </div>
+
+                <!-- Formulário -->
+                <form id="formAdicionarPet" action="pets/create.php" method="POST" enctype="multipart/form-data" class="space-y-5">
+                    <div>
+                        <label for="pet_foto" class="block text-sm font-semibold mb-2">Foto do Pet</label>
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <input 
+                                    type="file" 
+                                    id="pet_foto" 
+                                    name="foto" 
+                                    accept="image/*"
+                                    class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                    onchange="previewFoto(this, 'previewFotoAdicionar')"
+                                >
+                                <p class="text-xs text-slate-500 mt-1">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</p>
+                            </div>
+                            <div id="previewFotoAdicionar" class="w-20 h-20 rounded-lg overflow-hidden border border-slate-200 hidden">
+                                <img id="imgPreviewAdicionar" src="" alt="Preview" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="pet_nome" class="block text-sm font-semibold mb-2">Nome do Pet *</label>
+                        <input 
+                            type="text" 
+                            id="pet_nome" 
+                            name="nome" 
+                            required
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ex: Rex, Luna, Max"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="pet_tipo" class="block text-sm font-semibold mb-2">Tipo *</label>
+                        <select 
+                            id="pet_tipo" 
+                            name="tipo" 
+                            required
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                            <option value="">Selecione o tipo</option>
+                            <option value="cachorro">Cachorro</option>
+                            <option value="gato">Gato</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="pet_raca" class="block text-sm font-semibold mb-2">Raça</label>
+                        <input 
+                            type="text" 
+                            id="pet_raca" 
+                            name="raca" 
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ex: Golden Retriever, Persa, SRD"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="pet_idade" class="block text-sm font-semibold mb-2">Idade (anos)</label>
+                        <input 
+                            type="number" 
+                            id="pet_idade" 
+                            name="idade" 
+                            min="0" 
+                            max="30"
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ex: 2"
+                        >
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        class="w-full rounded-2xl px-6 py-3 text-base font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
+                    >
+                        Cadastrar Pet
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Pet -->
+    <div id="modalEditarPet" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <!-- Header do Modal -->
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-extrabold">Editar Pet</h2>
+                    <button onclick="fecharModalEditarPet()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mensagens de Erro -->
+                <div id="mensagensErroEditarPet" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <ul id="listaErrosEditarPet" class="list-disc list-inside text-sm text-red-700">
+                    </ul>
+                </div>
+
+                <!-- Formulário -->
+                <form id="formEditarPet" action="pets/update.php" method="POST" enctype="multipart/form-data" class="space-y-5">
+                    <input type="hidden" id="edit_pet_id" name="id" value="">
+                    
+                    <div>
+                        <label for="edit_pet_foto" class="block text-sm font-semibold mb-2">Foto do Pet</label>
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <input 
+                                    type="file" 
+                                    id="edit_pet_foto" 
+                                    name="foto" 
+                                    accept="image/*"
+                                    class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+                                    onchange="previewFoto(this, 'previewFotoEditar')"
+                                >
+                                <p class="text-xs text-slate-500 mt-1">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</p>
+                            </div>
+                            <div id="previewFotoEditar" class="w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
+                                <img id="imgPreviewEditar" src="" alt="Preview" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="edit_pet_nome" class="block text-sm font-semibold mb-2">Nome do Pet *</label>
+                        <input 
+                            type="text" 
+                            id="edit_pet_nome" 
+                            name="nome" 
+                            required
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ex: Rex, Luna, Max"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="edit_pet_tipo" class="block text-sm font-semibold mb-2">Tipo *</label>
+                        <select 
+                            id="edit_pet_tipo" 
+                            name="tipo" 
+                            required
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                            <option value="">Selecione o tipo</option>
+                            <option value="cachorro">Cachorro</option>
+                            <option value="gato">Gato</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="edit_pet_raca" class="block text-sm font-semibold mb-2">Raça</label>
+                        <input 
+                            type="text" 
+                            id="edit_pet_raca" 
+                            name="raca" 
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ex: Golden Retriever, Persa, SRD"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="edit_pet_idade" class="block text-sm font-semibold mb-2">Idade (anos)</label>
+                        <input 
+                            type="number" 
+                            id="edit_pet_idade" 
+                            name="idade" 
+                            min="0" 
+                            max="30"
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Ex: 2"
+                        >
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button 
+                            type="submit" 
+                            class="flex-1 rounded-2xl px-6 py-3 text-base font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
+                        >
+                            Salvar Alterações
+                        </button>
+                        <button 
+                            type="button"
+                            onclick="fecharModalEditarPet()"
+                            class="px-6 py-3 text-base font-semibold rounded-2xl border btn-secondary hover:shadow-md transition-all"
+                        >
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Modal Backdrop */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+        
+        .modal-backdrop.show {
+            opacity: 1;
+            animation: fadeInBackdrop 0.3s ease-out;
+        }
+        
+        @keyframes fadeInBackdrop {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+                -webkit-backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+        }
+        
+        /* Modal Content */
+        .modal-content {
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        #modalAdicionarPet.show {
+            display: flex !important;
+        }
+        
+        #modalAdicionarPet.show .modal-content {
+            animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        
+        @keyframes modalSlideIn {
+            0% {
+                transform: translateY(30px) scale(0.9);
+                opacity: 0;
+            }
+            60% {
+                transform: translateY(-5px) scale(1.02);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Animação de saída */
+        #modalAdicionarPet.closing .modal-content {
+            animation: modalSlideOut 0.3s ease-in forwards;
+        }
+        
+        #modalAdicionarPet.closing {
+            animation: fadeOutBackdrop 0.3s ease-in forwards;
+        }
+        
+        @keyframes modalSlideOut {
+            from {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(20px) scale(0.95);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeOutBackdrop {
+            from {
+                opacity: 1;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            to {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+                -webkit-backdrop-filter: blur(0px);
+            }
+        }
+    </style>
+
+    <script>
+        // Funções para abrir/fechar modal de adicionar pet
+        function abrirModalAdicionarPet() {
+            const modal = document.getElementById('modalAdicionarPet');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalAdicionarPet() {
+            const modal = document.getElementById('modalAdicionarPet');
+            modal.classList.add('closing');
+            modal.classList.remove('show');
+            
+            setTimeout(() => {
+                modal.classList.remove('closing');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                document.getElementById('formAdicionarPet').reset();
+                document.getElementById('mensagensErroPet').classList.add('hidden');
+                document.getElementById('mensagemSucessoPet').classList.add('hidden');
+                document.getElementById('formAdicionarPet').style.display = 'block';
+            }, 300);
+        }
+
+        // Fechar modal ao clicar fora
+        document.getElementById('modalAdicionarPet').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalAdicionarPet();
+            }
+        });
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                fecharModalAdicionarPet();
+            }
+        });
+
+        // Verificar se há erros ou sucesso na URL
+        <?php 
+        if (isset($_GET['erro']) && $_GET['erro'] == 'pet'): 
+            $errosPet = $_SESSION['erros_pet'] ?? [];
+            unset($_SESSION['erros_pet']);
+        ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                abrirModalAdicionarPet();
+                <?php if (!empty($errosPet)): ?>
+                    const mensagensErro = document.getElementById('mensagensErroPet');
+                    const listaErros = document.getElementById('listaErrosPet');
+                    listaErros.innerHTML = '';
+                    <?php foreach ($errosPet as $erro): ?>
+                        const li = document.createElement('li');
+                        li.textContent = <?= json_encode($erro, JSON_UNESCAPED_UNICODE) ?>;
+                        listaErros.appendChild(li);
+                    <?php endforeach; ?>
+                    mensagensErro.classList.remove('hidden');
+                <?php endif; ?>
+            });
+        <?php endif; ?>
+
+        <?php 
+        if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'pet'): 
+        ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                abrirModalAdicionarPet();
+                document.getElementById('formAdicionarPet').style.display = 'none';
+                document.getElementById('mensagemSucessoPet').classList.remove('hidden');
+                
+                // Limpar parâmetros da URL para evitar reabertura do modal
+                if (window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            });
+        <?php endif; ?>
+
+        // Funções para modal de editar pet
+        function abrirModalEditarPet(id, nome, tipo, raca, idade, foto) {
+            document.getElementById('edit_pet_id').value = id;
+            document.getElementById('edit_pet_nome').value = nome;
+            document.getElementById('edit_pet_tipo').value = tipo;
+            document.getElementById('edit_pet_raca').value = raca || '';
+            document.getElementById('edit_pet_idade').value = idade || '';
+            
+            const previewDiv = document.getElementById('previewFotoEditar');
+            const previewImg = document.getElementById('imgPreviewEditar');
+            if (foto) {
+                previewImg.src = foto;
+                previewDiv.classList.remove('hidden');
+            } else {
+                previewDiv.classList.add('hidden');
+            }
+            
+            const modal = document.getElementById('modalEditarPet');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalEditarPet() {
+            const modal = document.getElementById('modalEditarPet');
+            modal.classList.add('closing');
+            modal.classList.remove('show');
+            
+            setTimeout(() => {
+                modal.classList.remove('closing');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                document.getElementById('formEditarPet').reset();
+                document.getElementById('mensagensErroEditarPet').classList.add('hidden');
+            }, 300);
+        }
+
+        // Fechar modal de editar ao clicar fora
+        document.getElementById('modalEditarPet').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalEditarPet();
+            }
+        });
+
+        // Função para confirmar exclusão
+        function confirmarExcluirPet(id, nome) {
+            if (confirm('Tem certeza que deseja excluir o pet "' + nome + '"? Esta ação não pode ser desfeita.')) {
+                window.location.href = 'pets/delete.php?id=' + id;
+            }
+        }
+
+        // Função para preview de foto
+        function previewFoto(input, previewId) {
+            const previewDiv = document.getElementById(previewId);
+            const previewImg = document.getElementById(previewId === 'previewFotoAdicionar' ? 'imgPreviewAdicionar' : 'imgPreviewEditar');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewDiv.classList.remove('hidden');
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                previewDiv.classList.add('hidden');
+            }
+        }
+
+        // Verificar erros de edição
+        <?php 
+        if (isset($_GET['erro']) && $_GET['erro'] == 'editar_pet'): 
+            $errosEditarPet = $_SESSION['erros_editar_pet'] ?? [];
+            $petId = $_SESSION['pet_edit_id'] ?? null;
+            unset($_SESSION['erros_editar_pet'], $_SESSION['pet_edit_id']);
+        ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                <?php if ($petId): ?>
+                    // Buscar dados do pet para preencher o formulário
+                    fetch('pets/get.php?id=<?= $petId ?>')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                abrirModalEditarPet(
+                                    data.pet.id,
+                                    data.pet.nome,
+                                    data.pet.tipo,
+                                    data.pet.raca || '',
+                                    data.pet.idade || null,
+                                    data.pet.foto || ''
+                                );
+                                <?php if (!empty($errosEditarPet)): ?>
+                                    const mensagensErro = document.getElementById('mensagensErroEditarPet');
+                                    const listaErros = document.getElementById('listaErrosEditarPet');
+                                    listaErros.innerHTML = '';
+                                    <?php foreach ($errosEditarPet as $erro): ?>
+                                        const li = document.createElement('li');
+                                        li.textContent = <?= json_encode($erro, JSON_UNESCAPED_UNICODE) ?>;
+                                        listaErros.appendChild(li);
+                                    <?php endforeach; ?>
+                                    mensagensErro.classList.remove('hidden');
+                                <?php endif; ?>
+                            }
+                        });
+                <?php endif; ?>
+            });
+        <?php endif; ?>
+
+        // Verificar sucesso de edição ou exclusão
+        <?php if (isset($_GET['sucesso']) && ($_GET['sucesso'] == 'editar_pet' || $_GET['sucesso'] == 'excluir_pet')): ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            });
+        <?php endif; ?>
+    </script>
 </body>
 </html>

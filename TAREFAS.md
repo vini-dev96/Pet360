@@ -106,6 +106,29 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [ ] Sanitização de inputs
 - [ ] Headers de segurança
 
+### 8. Sistema de Cadastro de Pets ✅
+- [x] Criar tabela `pets` no banco de dados
+- [x] Campos: nome, idade, raça, tipo (cachorro/gato/outro)
+- [x] Campo foto para armazenar imagem do pet
+- [x] Vincular pet ao usuário (chave estrangeira)
+- [x] Interface no dashboard para adicionar pet (modal animado)
+- [x] Formulário de cadastro com validação
+- [x] Upload de foto do pet (JPG, PNG, GIF, WEBP - máx. 5MB)
+- [x] Preview de foto antes do upload
+- [x] Backend para processar cadastro (`pets/create.php`)
+- [x] Exibir lista de pets cadastrados no dashboard
+- [x] Cards visuais para cada pet com foto e informações
+- [x] Mensagens de erro/sucesso
+- [x] Validação frontend e backend
+- [x] Funcionalidade de editar pet (modal de edição)
+- [x] Backend para atualizar pet (`pets/update.php`)
+- [x] Atualização de foto (substitui foto antiga)
+- [x] Funcionalidade de excluir pet (soft delete)
+- [x] Backend para excluir pet (`pets/delete.php`)
+- [x] Botões de editar e excluir nos cards de pets
+- [x] Confirmação antes de excluir
+- [ ] Vincular serviços (banho & tosa, adestramento, passeios) aos pets
+
 ---
 
 ## 📁 Estrutura de Arquivos Sugerida

@@ -61,6 +61,52 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
 -- - INDEX em 'ativo' (otimiza filtros por status)
 -- ============================================
 
+-- ============================================
+-- Criar a tabela de pets
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS `pets` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `usuario_id` INT(11) NOT NULL COMMENT 'ID do usuário dono do pet',
+    `nome` VARCHAR(255) NOT NULL COMMENT 'Nome do pet',
+    `idade` INT(3) DEFAULT NULL COMMENT 'Idade do pet em anos',
+    `raca` VARCHAR(255) DEFAULT NULL COMMENT 'Raça do pet',
+    `tipo` ENUM('cachorro', 'gato', 'outro') DEFAULT 'cachorro' COMMENT 'Tipo de animal',
+    `foto` VARCHAR(255) DEFAULT NULL COMMENT 'Caminho da foto do pet',
+    `data_criacao` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Data e hora de cadastro',
+    `data_atualizacao` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Data e hora da última atualização',
+    `ativo` TINYINT(1) NOT NULL DEFAULT 1 COMMENT 'Status do pet (1=ativo, 0=inativo)',
+    PRIMARY KEY (`id`),
+    KEY `idx_usuario_id` (`usuario_id`),
+    KEY `idx_ativo` (`ativo`),
+    CONSTRAINT `fk_pets_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB 
+  DEFAULT CHARSET=utf8mb4 
+  COLLATE=utf8mb4_unicode_ci 
+  COMMENT='Tabela de pets cadastrados pelos usuários';
+
+-- ============================================
+-- Estrutura da tabela 'pets':
+-- 
+-- id              - Identificador único (auto-incremento)
+-- usuario_id      - ID do usuário dono do pet (chave estrangeira)
+-- nome            - Nome do pet
+-- idade           - Idade do pet em anos
+-- raca            - Raça do pet
+-- tipo            - Tipo de animal (cachorro, gato, outro)
+-- foto            - Caminho da foto do pet (opcional)
+-- data_criacao    - Timestamp de cadastro (automático)
+-- data_atualizacao- Timestamp de atualização (automático)
+-- ativo           - Status do pet (1=ativo, 0=inativo)
+-- 
+-- Índices:
+-- - PRIMARY KEY em 'id' (chave primária)
+-- - INDEX em 'usuario_id' (otimiza buscas por usuário)
+-- - INDEX em 'ativo' (otimiza filtros por status)
+-- - FOREIGN KEY em 'usuario_id' (garante integridade referencial)
+-- ============================================
+
 -- Verificar se a tabela foi criada corretamente
 -- Descomente a linha abaixo para testar:
 -- SELECT * FROM usuarios LIMIT 0;
+-- SELECT * FROM pets LIMIT 0;

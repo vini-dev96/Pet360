@@ -116,11 +116,25 @@ if (testDatabaseConnection()) {
 - Execute a parte do `CREATE TABLE` do script SQL
 - Certifique-se de que está no banco de dados correto (`pet360_db`)
 
+## Criar Tabela de Pets
+
+Após criar a tabela de usuários, você precisa criar a tabela de pets:
+
+1. No phpMyAdmin, selecione o banco `pet360_db` no menu lateral esquerdo
+2. Clique na aba **"SQL"** no topo
+3. Abra o arquivo `create_pets_table.sql` deste diretório
+4. Copie todo o conteúdo do arquivo
+5. Cole no campo de texto do phpMyAdmin
+6. Clique em **"Executar"** ou pressione `Ctrl + Enter`
+
+**OU** execute apenas o comando CREATE TABLE da tabela `pets` que está no arquivo `schema.sql`.
+
 ## Próximos Passos
 
 Após configurar o banco de dados, você pode:
 1. Criar o modal de registro (no `index.php`) ✅
-2. Criar o sistema de login (modal no `index.php`)
-3. Criar a página de dashboard (`dashboard.php`)
+2. Criar o sistema de login (modal no `index.php`) ✅
+3. Criar a página de dashboard (`dashboard.php`) ✅
+4. Criar a tabela de pets ✅
 
 Consulte o arquivo `TAREFAS.md` na raiz do projeto para ver todas as tarefas pendentes.
