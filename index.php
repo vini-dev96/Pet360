@@ -114,6 +114,9 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
         <a href="tel:<?= esc($phoneTel) ?>" class="hidden sm:flex items-center gap-2 text-sm font-semibold btn-link">
           <?= esc($business['phone']) ?>
         </a>
+        <button onclick="abrirModalLogin()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md">
+          Login
+        </button>
         <button onclick="abrirModalCriarConta()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md">
           Criar Conta
         </button>
@@ -661,7 +664,87 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
         <div class="mt-6 text-center">
           <p class="text-sm text-slate-600">
             Já tem uma conta? 
-            <a href="#" onclick="fecharModalCriarConta(); return false;" class="font-semibold btn-link">Fazer login</a>
+            <a href="#" onclick="fecharModalCriarConta(); abrirModalLogin(); return false;" class="font-semibold btn-link">Fazer login</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Login -->
+  <div id="modalLogin" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+    <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="p-8">
+        <!-- Header do Modal -->
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-extrabold">Login</h2>
+          <button onclick="fecharModalLogin()" class="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mensagens de Erro -->
+        <div id="mensagensErroLogin" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <ul id="listaErrosLogin" class="list-disc list-inside text-sm text-red-700">
+          </ul>
+        </div>
+
+        <!-- Formulário -->
+        <form id="formLogin" action="auth/login.php" method="POST" class="space-y-5">
+          <div>
+            <label for="login_email" class="block text-sm font-semibold mb-2">Email *</label>
+            <input 
+              type="email" 
+              id="login_email" 
+              name="email" 
+              required
+              class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="seu@email.com"
+            >
+          </div>
+
+          <div>
+            <label for="login_senha" class="block text-sm font-semibold mb-2">Senha *</label>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="login_senha" 
+                name="senha" 
+                required
+                class="w-full px-4 py-3 pr-12 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                placeholder="Digite sua senha"
+              >
+              <button 
+                type="button" 
+                id="toggleSenhaLogin" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 focus:outline-none"
+                aria-label="Mostrar senha"
+              >
+                <svg id="iconSenhaLoginAberta" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg id="iconSenhaLoginFechada" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            class="w-full rounded-2xl px-6 py-3 text-base font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
+          >
+            Entrar
+          </button>
+        </form>
+
+        <div class="mt-6 text-center">
+          <p class="text-sm text-slate-600">
+            Não tem uma conta? 
+            <a href="#" onclick="fecharModalLogin(); abrirModalCriarConta(); return false;" class="font-semibold btn-link">Criar conta</a>
           </p>
         </div>
       </div>
@@ -703,11 +786,13 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
       transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     
-    #modalCriarConta.show {
+    #modalCriarConta.show,
+    #modalLogin.show {
       display: flex !important;
     }
     
-    #modalCriarConta.show .modal-content {
+    #modalCriarConta.show .modal-content,
+    #modalLogin.show .modal-content {
       animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
     
@@ -726,11 +811,13 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
     }
     
     /* Animação de saída */
-    #modalCriarConta.closing .modal-content {
+    #modalCriarConta.closing .modal-content,
+    #modalLogin.closing .modal-content {
       animation: modalSlideOut 0.3s ease-in forwards;
     }
     
-    #modalCriarConta.closing {
+    #modalCriarConta.closing,
+    #modalLogin.closing {
       animation: fadeOutBackdrop 0.3s ease-in forwards;
     }
     
@@ -801,6 +888,45 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
       }, 300);
     }
 
+    // Funções para abrir/fechar modal de login
+    function abrirModalLogin() {
+      const modal = document.getElementById('modalLogin');
+      modal.style.display = 'flex';
+      // Pequeno delay para garantir que o display está aplicado antes da animação
+      setTimeout(() => {
+        modal.classList.add('show');
+      }, 10);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function fecharModalLogin() {
+      const modal = document.getElementById('modalLogin');
+      modal.classList.add('closing');
+      modal.classList.remove('show');
+      
+      // Aguardar animação de saída antes de esconder
+      setTimeout(() => {
+        modal.classList.remove('closing');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        // Limpar formulário
+        document.getElementById('formLogin').reset();
+        document.getElementById('mensagensErroLogin').classList.add('hidden');
+      }, 300);
+    }
+
+    function mostrarErroLogin(erros) {
+      const mensagensErro = document.getElementById('mensagensErroLogin');
+      const listaErros = document.getElementById('listaErrosLogin');
+      listaErros.innerHTML = '';
+      erros.forEach(erro => {
+        const li = document.createElement('li');
+        li.textContent = erro;
+        listaErros.appendChild(li);
+      });
+      mensagensErro.classList.remove('hidden');
+    }
+
     // Fechar modal ao clicar fora
     document.getElementById('modalCriarConta').addEventListener('click', function(e) {
       if (e.target === this) {
@@ -808,10 +934,40 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
       }
     });
 
+    document.getElementById('modalLogin').addEventListener('click', function(e) {
+      if (e.target === this) {
+        fecharModalLogin();
+      }
+    });
+
     // Fechar modal com ESC
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
         fecharModalCriarConta();
+        fecharModalLogin();
+      }
+    });
+
+    // Validação do formulário de login
+    document.getElementById('formLogin').addEventListener('submit', function(e) {
+      const email = document.getElementById('login_email').value.trim();
+      const senha = document.getElementById('login_senha').value;
+      const erros = [];
+      
+      if (!email) {
+        erros.push('Email é obrigatório');
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        erros.push('Email inválido');
+      }
+      
+      if (!senha) {
+        erros.push('Senha é obrigatória');
+      }
+      
+      if (erros.length > 0) {
+        e.preventDefault();
+        mostrarErroLogin(erros);
+        return false;
       }
     });
 
@@ -876,6 +1032,29 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
             iconConfirmarSenhaAberta.classList.add('hidden');
             iconConfirmarSenhaFechada.classList.remove('hidden');
             toggleConfirmarSenha.setAttribute('aria-label', 'Mostrar senha');
+          }
+        });
+      }
+
+      // Toggle mostrar/ocultar senha no modal de login
+      const toggleSenhaLogin = document.getElementById('toggleSenhaLogin');
+      const senhaLoginInput = document.getElementById('login_senha');
+      const iconSenhaLoginAberta = document.getElementById('iconSenhaLoginAberta');
+      const iconSenhaLoginFechada = document.getElementById('iconSenhaLoginFechada');
+
+      if (toggleSenhaLogin && senhaLoginInput) {
+        toggleSenhaLogin.addEventListener('click', function() {
+          const type = senhaLoginInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          senhaLoginInput.setAttribute('type', type);
+          
+          if (type === 'text') {
+            iconSenhaLoginAberta.classList.remove('hidden');
+            iconSenhaLoginFechada.classList.add('hidden');
+            toggleSenhaLogin.setAttribute('aria-label', 'Ocultar senha');
+          } else {
+            iconSenhaLoginAberta.classList.add('hidden');
+            iconSenhaLoginFechada.classList.remove('hidden');
+            toggleSenhaLogin.setAttribute('aria-label', 'Mostrar senha');
           }
         });
       }
@@ -994,6 +1173,22 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
             document.getElementById('modal_telefone').value = <?= json_encode($dados['telefone'], JSON_UNESCAPED_UNICODE) ?>;
           <?php endif; ?>
         <?php endif; ?>
+      });
+    <?php endif; ?>
+
+    // Verificar se há erros de login na sessão
+    <?php 
+    if (isset($_SESSION['erros_login'])): 
+      $errosLogin = $_SESSION['erros_login'];
+      $emailLogin = $_SESSION['email_login'] ?? '';
+      unset($_SESSION['erros_login'], $_SESSION['email_login']);
+    ?>
+      document.addEventListener('DOMContentLoaded', function() {
+        abrirModalLogin();
+        <?php if (!empty($emailLogin)): ?>
+          document.getElementById('login_email').value = <?= json_encode($emailLogin, JSON_UNESCAPED_UNICODE) ?>;
+        <?php endif; ?>
+        mostrarErroLogin(<?= json_encode($errosLogin, JSON_UNESCAPED_UNICODE) ?>);
       });
     <?php endif; ?>
   </script>

@@ -53,26 +53,28 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Validação de senha forte (mínimo 7 caracteres, 1 maiúscula, 1 caractere especial)
 - [x] Link para modal de login (a ser implementado)
 
-### 3. Modal de Login no `index.php`
-- [ ] Adicionar botão "Login" no header (superior direito, ao lado de "Agendar agora")
-- [ ] Criar modal de login com Tailwind CSS
-- [ ] Formulário de login (email/telefone e senha)
-- [ ] JavaScript para abrir/fechar modal
-- [ ] Validação de campos
-- [ ] Integração com backend para autenticação
-- [ ] Mensagens de erro (credenciais inválidas)
-- [ ] Link para página de criação de conta dentro do modal
-- [ ] Design responsivo e acessível
+### 3. Modal de Login no `index.php` ✅
+- [x] Adicionar botão "Login" no header (superior direito, ao lado de "Agendar agora")
+- [x] Criar modal de login com Tailwind CSS
+- [x] Formulário de login (email e senha)
+- [x] JavaScript para abrir/fechar modal
+- [x] Validação de campos
+- [x] Integração com backend para autenticação
+- [x] Mensagens de erro (credenciais inválidas)
+- [x] Link para modal de criação de conta dentro do modal
+- [x] Design responsivo e acessível
+- [x] Botão para mostrar/ocultar senha (ícone de olho)
+- [x] Animações modernas (mesmo padrão do modal de criar conta)
 
 ### 4. Sistema de Autenticação Backend
-- [ ] Criar arquivo `auth/login.php` para processar login
-- [ ] Criar arquivo `auth/register.php` para processar registro
+- [x] Criar arquivo `auth/login.php` para processar login
+- [x] Criar arquivo `auth/register.php` para processar registro
 - [ ] Criar arquivo `auth/logout.php` para encerrar sessão
-- [ ] Implementar sessões PHP (session_start)
-- [ ] Verificar credenciais no banco de dados
-- [ ] Comparar senha com password_verify
-- [ ] Criar variáveis de sessão após login bem-sucedido
-- [ ] Proteção contra SQL injection (prepared statements)
+- [x] Implementar sessões PHP (session_start)
+- [x] Verificar credenciais no banco de dados
+- [x] Comparar senha com password_verify
+- [x] Criar variáveis de sessão após login bem-sucedido
+- [x] Proteção contra SQL injection (prepared statements)
 - [ ] Proteção contra CSRF (tokens)
 
 ### 5. Página de Dashboard (`dashboard.php`)
