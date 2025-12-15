@@ -2,6 +2,10 @@
 // index.php — Landing page Pets (PHP + Tailwind)
 session_start();
 
+// Verificar se o usuário está logado
+$usuarioLogado = isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'];
+$usuarioNome = $_SESSION['usuario_nome'] ?? '';
+
 // ---- CONFIGURAÇÃO RÁPIDA ----
 $business = [
   'name'       => 'Pet360',
@@ -111,12 +115,26 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
         <a href="#contato" class="transition-colors hover:text-emerald-600">Contato</a>
       </nav>
       <div class="flex items-center gap-3">
-        <button onclick="abrirModalLogin()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
-          Login
-        </button>
-        <button onclick="abrirModalCriarConta()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md">
-          Criar Conta
-        </button>
+        <?php if ($usuarioLogado): ?>
+          <!-- Usuário logado -->
+          <div class="hidden sm:flex items-center gap-3">
+            <span class="text-sm text-slate-700">Olá, <strong><?= esc($usuarioNome) ?></strong></span>
+            <a href="dashboard.php" class="rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
+              Dashboard
+            </a>
+            <a href="auth/logout.php" class="rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md">
+              Sair
+            </a>
+          </div>
+        <?php else: ?>
+          <!-- Usuário não logado -->
+          <button onclick="abrirModalLogin()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
+            Login
+          </button>
+          <button onclick="abrirModalCriarConta()" class="hidden sm:flex rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md">
+            Criar Conta
+          </button>
+        <?php endif; ?>
       </div>
     </div>
   </header>

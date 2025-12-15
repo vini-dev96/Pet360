@@ -93,6 +93,10 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Proteger rotas que requerem autenticação
 - [x] Redirecionar usuários não autenticados para login
 - [ ] Redirecionar usuários autenticados que tentam acessar login/registro
+- [x] Manter sessão ativa na home (index.php) quando usuário estiver logado
+- [x] Exibir informações do usuário logado no header da home
+- [x] Ocultar botões Login/Criar Conta quando usuário estiver autenticado
+- [x] Manter cookie de sessão ativo (session_start em todas as páginas)
 
 ### 7. Melhorias e Segurança
 - [ ] Implementar "Lembrar-me" (opcional)
