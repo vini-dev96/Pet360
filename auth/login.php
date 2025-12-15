@@ -79,9 +79,8 @@ try {
     $_SESSION['usuario_email'] = $usuario['email'];
     $_SESSION['usuario_logado'] = true;
     
-    // Redirecionar para dashboard (será criado na próxima tarefa)
-    // Por enquanto, redireciona para index com sucesso
-    header('Location: ../index.php?sucesso=login');
+    // Redirecionar para dashboard
+    header('Location: ../dashboard.php');
     exit;
     
 } catch (PDOException $e) {
@@ -91,3 +90,4 @@ try {
     header('Location: ../index.php?erro=login');
     exit;
 }
+

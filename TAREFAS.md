@@ -66,10 +66,10 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Botão para mostrar/ocultar senha (ícone de olho)
 - [x] Animações modernas (mesmo padrão do modal de criar conta)
 
-### 4. Sistema de Autenticação Backend
+### 4. Sistema de Autenticação Backend ✅
 - [x] Criar arquivo `auth/login.php` para processar login
 - [x] Criar arquivo `auth/register.php` para processar registro
-- [ ] Criar arquivo `auth/logout.php` para encerrar sessão
+- [x] Criar arquivo `auth/logout.php` para encerrar sessão
 - [x] Implementar sessões PHP (session_start)
 - [x] Verificar credenciais no banco de dados
 - [x] Comparar senha com password_verify
@@ -77,21 +77,21 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Proteção contra SQL injection (prepared statements)
 - [ ] Proteção contra CSRF (tokens)
 
-### 5. Página de Dashboard (`dashboard.php`)
-- [ ] Criar página de dashboard para usuários logados
-- [ ] Verificar se usuário está autenticado (middleware)
-- [ ] Exibir informações do usuário
-- [ ] Design consistente com o tema do site
-- [ ] Menu de navegação
-- [ ] Botão de logout
-- [ ] Seções: perfil, serviços agendados, histórico, etc.
-- [ ] Responsivo e moderno
+### 5. Página de Dashboard (`dashboard.php`) ✅
+- [x] Criar página de dashboard para usuários logados
+- [x] Verificar se usuário está autenticado (middleware)
+- [x] Exibir informações do usuário
+- [x] Design consistente com o tema do site
+- [x] Menu de navegação
+- [x] Botão de logout
+- [x] Seções: perfil, serviços agendados, histórico, etc.
+- [x] Responsivo e moderno
 
 ### 6. Redirecionamento e Proteção de Rotas
-- [ ] Após login bem-sucedido → redirecionar para `dashboard.php`
+- [x] Após login bem-sucedido → redirecionar para `dashboard.php`
 - [ ] Após registro bem-sucedido → redirecionar para `dashboard.php` (ou login)
-- [ ] Proteger rotas que requerem autenticação
-- [ ] Redirecionar usuários não autenticados para login
+- [x] Proteger rotas que requerem autenticação
+- [x] Redirecionar usuários não autenticados para login
 - [ ] Redirecionar usuários autenticados que tentam acessar login/registro
 
 ### 7. Melhorias e Segurança
