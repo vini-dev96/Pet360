@@ -129,6 +129,46 @@ Após criar a tabela de usuários, você precisa criar a tabela de pets:
 
 **OU** execute apenas o comando CREATE TABLE da tabela `pets` que está no arquivo `schema.sql`.
 
+## Criar Tabelas de Serviços e Agendamentos
+
+Para habilitar o sistema de compra de serviços, você precisa criar as tabelas de serviços e agendamentos:
+
+1. No phpMyAdmin, selecione o banco `pet360_db` no menu lateral esquerdo
+2. Clique na aba **"SQL"** no topo
+3. Abra o arquivo `create_servicos_tables.sql` deste diretório
+4. Copie todo o conteúdo do arquivo
+5. Cole no campo de texto do phpMyAdmin
+6. Clique em **"Executar"** ou pressione `Ctrl + Enter`
+
+Este script irá:
+- Criar a tabela `servicos` com os serviços disponíveis
+- Criar a tabela `agendamentos` para armazenar as compras/agendamentos
+- Inserir os serviços padrão (Banho & Tosa, Adestramento, Passeios) com seus preços
+
+**Nota:** Os serviços padrão são inseridos automaticamente com os seguintes preços:
+- **Banho & Tosa Premium**: R$ 60,00 (120 minutos) - Tipo: `banho_tosa`
+- **Adestramento Positivo**: R$ 80,00 (60 minutos) - Tipo: `adestramento`
+- **Passeio Monitorado**: R$ 40,00 (45 minutos) - Tipo: `passeios`
+
+### Inserir apenas os serviços (se a tabela já existir)
+
+Se você já criou a tabela `servicos` mas os serviços não foram inseridos, execute o arquivo `insert_servicos.sql`:
+
+1. No phpMyAdmin, selecione o banco `pet360_db` no menu lateral esquerdo
+2. Clique na aba **"SQL"** no topo
+3. Abra o arquivo `insert_servicos.sql` deste diretório
+4. Copie todo o conteúdo do arquivo
+5. Cole no campo de texto do phpMyAdmin
+6. Clique em **"Executar"** ou pressione `Ctrl + Enter`
+
+Este script usa `INSERT IGNORE`, então pode ser executado múltiplas vezes sem criar duplicatas.
+
+**Verificar se os serviços foram inseridos:**
+Após executar o script, você pode verificar se os serviços foram inseridos corretamente:
+1. No phpMyAdmin, selecione a tabela `servicos`
+2. Clique na aba **"Visualizar"** para ver os registros
+3. Você deve ver 3 serviços: Banho & Tosa Premium, Adestramento Positivo e Passeio Monitorado
+
 ## Próximos Passos
 
 Após configurar o banco de dados, você pode:
@@ -136,5 +176,6 @@ Após configurar o banco de dados, você pode:
 2. Criar o sistema de login (modal no `index.php`) ✅
 3. Criar a página de dashboard (`dashboard.php`) ✅
 4. Criar a tabela de pets ✅
+5. Criar as tabelas de serviços e agendamentos ✅
 
 Consulte o arquivo `TAREFAS.md` na raiz do projeto para ver todas as tarefas pendentes.

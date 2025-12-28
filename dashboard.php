@@ -12,6 +12,10 @@ if (!isset($_SESSION['usuario_logado']) || !$_SESSION['usuario_logado']) {
 require_once __DIR__ . '/config/database.php';
 
 // Buscar informações atualizadas do usuário e seus pets
+$pets = [];
+$servicos = [];
+$agendamentos = [];
+
 try {
     $pdo = getDatabaseConnection();
     $stmt = $pdo->prepare("SELECT id, nome, email, telefone, data_criacao, data_atualizacao FROM usuarios WHERE id = :id");
@@ -25,10 +29,45 @@ try {
         exit;
     }
     
-    // Buscar pets do usuário
-    $stmtPets = $pdo->prepare("SELECT id, nome, idade, raca, tipo, foto, data_criacao FROM pets WHERE usuario_id = :usuario_id AND ativo = 1 ORDER BY data_criacao DESC");
-    $stmtPets->execute(['usuario_id' => $_SESSION['usuario_id']]);
-    $pets = $stmtPets->fetchAll();
+    // Buscar pets do usuário (bloco separado para não perder dados se outras queries falharem)
+    try {
+        $stmtPets = $pdo->prepare("SELECT id, nome, idade, raca, tipo, foto, data_criacao FROM pets WHERE usuario_id = :usuario_id AND ativo = 1 ORDER BY data_criacao DESC");
+        $stmtPets->execute(['usuario_id' => $_SESSION['usuario_id']]);
+        $pets = $stmtPets->fetchAll();
+    } catch (PDOException $e) {
+        error_log('Erro ao buscar pets: ' . $e->getMessage());
+        $pets = [];
+    }
+    
+    // Buscar serviços disponíveis (bloco separado - opcional)
+    try {
+        $stmtServicos = $pdo->prepare("SELECT id, nome, descricao, preco, duracao, tipo FROM servicos WHERE ativo = 1 ORDER BY tipo, nome");
+        $stmtServicos->execute();
+        $servicos = $stmtServicos->fetchAll();
+    } catch (PDOException $e) {
+        error_log('Erro ao buscar serviços: ' . $e->getMessage());
+        $servicos = [];
+    }
+    
+    // Buscar agendamentos do usuário (bloco separado - opcional)
+    try {
+        $stmtAgendamentos = $pdo->prepare("
+            SELECT a.id, a.data_agendamento, a.status, a.valor_pago, a.data_criacao,
+                   s.nome as servico_nome, s.tipo as servico_tipo,
+                   p.nome as pet_nome
+            FROM agendamentos a
+            INNER JOIN servicos s ON a.servico_id = s.id
+            INNER JOIN pets p ON a.pet_id = p.id
+            WHERE a.usuario_id = :usuario_id
+            ORDER BY a.data_criacao DESC
+            LIMIT 10
+        ");
+        $stmtAgendamentos->execute(['usuario_id' => $_SESSION['usuario_id']]);
+        $agendamentos = $stmtAgendamentos->fetchAll();
+    } catch (PDOException $e) {
+        error_log('Erro ao buscar agendamentos: ' . $e->getMessage());
+        $agendamentos = [];
+    }
     
 } catch (PDOException $e) {
     error_log('Erro ao buscar dados do usuário: ' . $e->getMessage());
@@ -38,7 +77,7 @@ try {
         'telefone' => '',
         'data_criacao' => date('Y-m-d H:i:s')
     ];
-    $pets = [];
+    // Não sobrescrever $pets aqui - já foi definido no bloco separado acima
 }
 
 function esc($s){ return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
@@ -202,12 +241,40 @@ $business = [
                     </div>
                     <h2 class="text-lg font-bold text-slate-900">Serviços Agendados</h2>
                 </div>
-                <div class="text-center py-8">
-                    <p class="text-slate-500 text-sm mb-4">Nenhum serviço agendado no momento</p>
-                    <a href="index.php" class="inline-block rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
-                        Agendar Serviço
-                    </a>
-                </div>
+                <?php if (empty($agendamentos)): ?>
+                    <div class="text-center py-8">
+                        <p class="text-slate-500 text-sm mb-4">Nenhum serviço agendado no momento</p>
+                        <button onclick="scrollToServicos()" class="inline-block rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
+                            Ver Serviços
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                        <?php foreach ($agendamentos as $agendamento): ?>
+                            <div class="border border-slate-200 rounded-lg p-3">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-semibold text-sm text-slate-900"><?= esc($agendamento['servico_nome']) ?></p>
+                                        <p class="text-xs text-slate-500">Pet: <?= esc($agendamento['pet_nome']) ?></p>
+                                        <?php if ($agendamento['data_agendamento']): ?>
+                                            <p class="text-xs text-slate-500">Data: <?= date('d/m/Y H:i', strtotime($agendamento['data_agendamento'])) ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm font-bold text-emerald-600">R$ <?= number_format($agendamento['valor_pago'], 2, ',', '.') ?></p>
+                                        <span class="inline-block px-2 py-1 text-xs rounded-full <?php
+                                            echo $agendamento['status'] == 'concluido' ? 'bg-green-100 text-green-700' : 
+                                                ($agendamento['status'] == 'confirmado' ? 'bg-blue-100 text-blue-700' : 
+                                                ($agendamento['status'] == 'cancelado' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'));
+                                        ?>">
+                                            <?= ucfirst($agendamento['status']) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
 
             <!-- Card Histórico -->
@@ -297,11 +364,107 @@ $business = [
                             </div>
                             <div class="mt-4 pt-4 border-t border-slate-200">
                                 <div class="flex gap-2">
-                                    <a href="index.php#servicos" class="flex-1 text-center rounded-lg px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
+                                    <button 
+                                        onclick="abrirModalSelecionarServico(<?= $pet['id'] ?>, '<?= esc(addslashes($pet['nome'])) ?>')" 
+                                        class="flex-1 text-center rounded-lg px-3 py-2 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                                    >
                                         Agendar Serviço
-                                    </a>
+                                    </button>
+                                    <button 
+                                        onclick="scrollToServicos()" 
+                                        class="px-3 py-2 text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors rounded-lg"
+                                        title="Ver todos os serviços"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Seção Serviços Disponíveis -->
+        <div class="card p-6 mb-8" id="servicos-disponiveis">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Serviços Disponíveis</h2>
+            </div>
+            
+            <?php if (empty($servicos)): ?>
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-16 w-16 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p class="text-slate-500 text-sm mb-2">Nenhum serviço disponível no momento</p>
+                    <p class="text-xs text-slate-400 mb-4">Os serviços ainda não foram inseridos no banco de dados</p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                        <a 
+                            href="servicos/init.php" 
+                            class="inline-block rounded-xl px-6 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
+                            onclick="return confirm('Deseja inserir os serviços padrão (Banho & Tosa, Adestramento, Passeios) no banco de dados?');"
+                        >
+                            Inserir Serviços Padrão
+                        </a>
+                        <a 
+                            href="database/insert_servicos.sql" 
+                            target="_blank"
+                            class="inline-block rounded-xl px-6 py-2 text-sm font-semibold shadow-sm border btn-secondary hover:shadow-md transition-all"
+                        >
+                            Ver Script SQL
+                        </a>
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <?php 
+                    // Ícones por tipo de serviço
+                    $iconesServicos = [
+                        'banho_tosa' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+                        'adestramento' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
+                        'passeios' => '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>'
+                    ];
+                    $coresServicos = [
+                        'banho_tosa' => 'bg-blue-100 text-blue-600',
+                        'adestramento' => 'bg-purple-100 text-purple-600',
+                        'passeios' => 'bg-green-100 text-green-600'
+                    ];
+                    foreach ($servicos as $servico): 
+                        $icone = $iconesServicos[$servico['tipo']] ?? '';
+                        $cor = $coresServicos[$servico['tipo']] ?? 'bg-slate-100 text-slate-600';
+                    ?>
+                        <div class="border border-slate-200 rounded-xl p-6 hover:border-emerald-500 hover:shadow-md transition-all flex flex-col">
+                            <div class="mb-4 flex-1">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="p-2 <?= $cor ?> rounded-lg">
+                                        <?= $icone ?>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-900"><?= esc($servico['nome']) ?></h3>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-4 line-clamp-3"><?= esc($servico['descricao']) ?></p>
+                                <div class="flex items-center justify-between mb-2">
+                                    <div>
+                                        <p class="text-2xl font-extrabold text-emerald-600">R$ <?= number_format($servico['preco'], 2, ',', '.') ?></p>
+                                    </div>
+                                </div>
+                                <?php if ($servico['duracao']): ?>
+                                    <div class="flex items-center gap-1 text-xs text-slate-500">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span>Duração: <?= $servico['duracao'] ?> minutos</span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            <button 
+                                onclick="abrirModalCheckout(<?= $servico['id'] ?>, '<?= esc(addslashes($servico['nome'])) ?>', <?= $servico['preco'] ?>)"
+                                class="w-full rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md transition-all mt-auto"
+                            >
+                                Agendar Serviço
+                            </button>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -632,6 +795,187 @@ $business = [
         </div>
     </div>
 
+    <!-- Modal Selecionar Serviço para Pet -->
+    <div id="modalSelecionarServico" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <!-- Header do Modal -->
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-extrabold">Selecionar Serviço</h2>
+                        <p class="text-sm text-slate-600 mt-1">Para: <strong id="petNomeSelecionado"></strong></p>
+                    </div>
+                    <button onclick="fecharModalSelecionarServico()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Lista de Serviços -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <?php if (!empty($servicos)): ?>
+                        <?php 
+                        $iconesServicos = [
+                            'banho_tosa' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>',
+                            'adestramento' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
+                            'passeios' => '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>'
+                        ];
+                        $coresServicos = [
+                            'banho_tosa' => 'bg-blue-100 text-blue-600',
+                            'adestramento' => 'bg-purple-100 text-purple-600',
+                            'passeios' => 'bg-green-100 text-green-600'
+                        ];
+                        foreach ($servicos as $servico): 
+                            $icone = $iconesServicos[$servico['tipo']] ?? '';
+                            $cor = $coresServicos[$servico['tipo']] ?? 'bg-slate-100 text-slate-600';
+                        ?>
+                            <div class="border border-slate-200 rounded-xl p-5 hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer" onclick="selecionarServicoParaPet(<?= $servico['id'] ?>, '<?= esc(addslashes($servico['nome'])) ?>', <?= $servico['preco'] ?>)">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="p-2 <?= $cor ?> rounded-lg">
+                                        <?= $icone ?>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-slate-900"><?= esc($servico['nome']) ?></h3>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-3 line-clamp-2"><?= esc($servico['descricao']) ?></p>
+                                <div class="flex items-center justify-between">
+                                    <p class="text-xl font-extrabold text-emerald-600">R$ <?= number_format($servico['preco'], 2, ',', '.') ?></p>
+                                    <?php if ($servico['duracao']): ?>
+                                        <span class="text-xs text-slate-500 flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <?= $servico['duracao'] ?> min
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="col-span-2 text-center py-8">
+                            <p class="text-slate-500 text-sm">Nenhum serviço disponível no momento</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button 
+                        type="button"
+                        onclick="fecharModalSelecionarServico()"
+                        class="px-6 py-2 text-sm font-semibold rounded-xl border btn-secondary hover:shadow-md transition-all"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Checkout -->
+    <div id="modalCheckout" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-8">
+                <!-- Header do Modal -->
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-extrabold">Finalizar Compra</h2>
+                    <button onclick="fecharModalCheckout()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mensagens de Erro -->
+                <div id="mensagensErroCheckout" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <ul id="listaErrosCheckout" class="list-disc list-inside text-sm text-red-700">
+                    </ul>
+                </div>
+
+                <!-- Resumo do Serviço -->
+                <div class="mb-6 p-4 bg-slate-50 rounded-xl">
+                    <h3 class="font-bold text-slate-900 mb-2" id="checkoutServicoNome"></h3>
+                    <p class="text-2xl font-extrabold text-emerald-600" id="checkoutServicoPreco"></p>
+                </div>
+
+                <!-- Formulário -->
+                <form id="formCheckout" action="agendamentos/create.php" method="POST" class="space-y-5">
+                    <input type="hidden" id="checkout_servico_id" name="servico_id" value="">
+                    
+                    <div>
+                        <label for="checkout_pet_id" class="block text-sm font-semibold mb-2">Selecione o Pet *</label>
+                        <select 
+                            id="checkout_pet_id" 
+                            name="pet_id" 
+                            required
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                            <option value="">Selecione um pet</option>
+                            <?php foreach ($pets as $pet): ?>
+                                <option value="<?= $pet['id'] ?>"><?= esc($pet['nome']) ?> (<?= esc($pet['tipo']) ?>)</option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (empty($pets)): ?>
+                            <p class="text-xs text-red-600 mt-1">Você precisa cadastrar um pet antes de agendar um serviço.</p>
+                        <?php endif; ?>
+                    </div>
+
+                    <div>
+                        <label for="checkout_data_agendamento" class="block text-sm font-semibold mb-2">Data e Hora do Agendamento</label>
+                        <input 
+                            type="datetime-local" 
+                            id="checkout_data_agendamento" 
+                            name="data_agendamento" 
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            min="<?= date('Y-m-d\TH:i') ?>"
+                        >
+                        <p class="text-xs text-slate-500 mt-1">Deixe em branco para agendar sem data específica</p>
+                    </div>
+
+                    <div>
+                        <label for="checkout_observacoes" class="block text-sm font-semibold mb-2">Observações (opcional)</label>
+                        <textarea 
+                            id="checkout_observacoes" 
+                            name="observacoes" 
+                            rows="3"
+                            class="w-full px-4 py-3 rounded-xl border card-outline focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            placeholder="Informações adicionais sobre o serviço..."
+                        ></textarea>
+                    </div>
+
+                    <!-- Resumo do Pedido -->
+                    <div class="border-t border-slate-200 pt-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-slate-600">Subtotal</span>
+                            <span class="text-sm font-semibold text-slate-900" id="checkoutSubtotal">R$ 0,00</span>
+                        </div>
+                        <div class="flex items-center justify-between text-lg font-bold">
+                            <span class="text-slate-900">Total</span>
+                            <span class="text-emerald-600" id="checkoutTotal">R$ 0,00</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button 
+                            type="submit" 
+                            id="btnFinalizarCompra"
+                            class="flex-1 rounded-2xl px-6 py-3 text-base font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
+                            <?= empty($pets) ? 'disabled' : '' ?>
+                        >
+                            Finalizar Compra
+                        </button>
+                        <button 
+                            type="button"
+                            onclick="fecharModalCheckout()"
+                            class="px-6 py-3 text-base font-semibold rounded-2xl border btn-secondary hover:shadow-md transition-all"
+                        >
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <style>
         /* Modal Backdrop */
         .modal-backdrop {
@@ -669,13 +1013,17 @@ $business = [
         
         #modalAdicionarPet.show,
         #modalEditarPet.show,
-        #modalExcluirPet.show {
+        #modalExcluirPet.show,
+        #modalCheckout.show,
+        #modalSelecionarServico.show {
             display: flex !important;
         }
         
         #modalAdicionarPet.show .modal-content,
         #modalEditarPet.show .modal-content,
-        #modalExcluirPet.show .modal-content {
+        #modalExcluirPet.show .modal-content,
+        #modalCheckout.show .modal-content,
+        #modalSelecionarServico.show .modal-content {
             animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
         
@@ -696,13 +1044,17 @@ $business = [
         /* Animação de saída */
         #modalAdicionarPet.closing .modal-content,
         #modalEditarPet.closing .modal-content,
-        #modalExcluirPet.closing .modal-content {
+        #modalExcluirPet.closing .modal-content,
+        #modalCheckout.closing .modal-content,
+        #modalSelecionarServico.closing .modal-content {
             animation: modalSlideOut 0.3s ease-in forwards;
         }
         
         #modalAdicionarPet.closing,
         #modalEditarPet.closing,
-        #modalExcluirPet.closing {
+        #modalExcluirPet.closing,
+        #modalCheckout.closing,
+        #modalSelecionarServico.closing {
             animation: fadeOutBackdrop 0.3s ease-in forwards;
         }
         
@@ -771,6 +1123,8 @@ $business = [
                 const modalAdicionar = document.getElementById('modalAdicionarPet');
                 const modalEditar = document.getElementById('modalEditarPet');
                 const modalExcluir = document.getElementById('modalExcluirPet');
+                const modalCheckout = document.getElementById('modalCheckout');
+                const modalSelecionarServico = document.getElementById('modalSelecionarServico');
                 if (modalAdicionar.classList.contains('show')) {
                     fecharModalAdicionarPet();
                 }
@@ -779,6 +1133,12 @@ $business = [
                 }
                 if (modalExcluir.classList.contains('show')) {
                     fecharModalExcluirPet();
+                }
+                if (modalCheckout.classList.contains('show')) {
+                    fecharModalCheckout();
+                }
+                if (modalSelecionarServico.classList.contains('show')) {
+                    fecharModalSelecionarServico();
                 }
             }
         });
@@ -984,6 +1344,176 @@ $business = [
                 setTimeout(() => {
                     window.location.href = 'dashboard.php';
                 }, 500);
+            });
+        <?php endif; ?>
+
+        // Funções para modal de checkout
+        function abrirModalCheckout(servicoId, servicoNome, servicoPreco, petId = null) {
+            document.getElementById('checkout_servico_id').value = servicoId;
+            document.getElementById('checkoutServicoNome').textContent = servicoNome;
+            document.getElementById('checkoutServicoPreco').textContent = 'R$ ' + servicoPreco.toFixed(2).replace('.', ',');
+            document.getElementById('checkoutSubtotal').textContent = 'R$ ' + servicoPreco.toFixed(2).replace('.', ',');
+            document.getElementById('checkoutTotal').textContent = 'R$ ' + servicoPreco.toFixed(2).replace('.', ',');
+            
+            // Limpar formulário
+            document.getElementById('formCheckout').reset();
+            document.getElementById('checkout_servico_id').value = servicoId;
+            
+            // Pré-selecionar pet se fornecido
+            if (petId) {
+                document.getElementById('checkout_pet_id').value = petId;
+            }
+            
+            document.getElementById('mensagensErroCheckout').classList.add('hidden');
+            
+            const modal = document.getElementById('modalCheckout');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function fecharModalCheckout() {
+            const modal = document.getElementById('modalCheckout');
+            modal.classList.add('closing');
+            modal.classList.remove('show');
+            
+            setTimeout(() => {
+                modal.classList.remove('closing');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                document.getElementById('formCheckout').reset();
+                document.getElementById('mensagensErroCheckout').classList.add('hidden');
+            }, 300);
+        }
+
+        // Fechar modal de checkout ao clicar fora
+        document.getElementById('modalCheckout').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalCheckout();
+            }
+        });
+
+        // Função para scroll até serviços
+        function scrollToServicos() {
+            document.getElementById('servicos-disponiveis').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Variáveis globais para seleção de serviço
+        let petIdSelecionado = null;
+
+        // Função para abrir modal de seleção de serviço
+        function abrirModalSelecionarServico(petId, petNome) {
+            petIdSelecionado = petId;
+            document.getElementById('petNomeSelecionado').textContent = petNome;
+            
+            const modal = document.getElementById('modalSelecionarServico');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Função para fechar modal de seleção de serviço
+        function fecharModalSelecionarServico() {
+            const modal = document.getElementById('modalSelecionarServico');
+            modal.classList.add('closing');
+            modal.classList.remove('show');
+            
+            setTimeout(() => {
+                modal.classList.remove('closing');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                petIdSelecionado = null;
+            }, 300);
+        }
+
+        // Função para selecionar serviço e abrir checkout
+        function selecionarServicoParaPet(servicoId, servicoNome, servicoPreco) {
+            fecharModalSelecionarServico();
+            setTimeout(() => {
+                abrirModalCheckout(servicoId, servicoNome, servicoPreco, petIdSelecionado);
+            }, 350);
+        }
+
+        // Fechar modal de seleção de serviço ao clicar fora
+        document.getElementById('modalSelecionarServico').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalSelecionarServico();
+            }
+        });
+
+        // Verificar erros de checkout
+        <?php 
+        if (isset($_GET['erro']) && $_GET['erro'] == 'checkout'): 
+            $errosCheckout = $_SESSION['erros_checkout'] ?? [];
+            $servicoId = $_SESSION['checkout_servico_id'] ?? null;
+            unset($_SESSION['erros_checkout'], $_SESSION['checkout_servico_id']);
+        ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                <?php if ($servicoId): ?>
+                    // Buscar dados do serviço
+                    fetch('servicos/get.php?id=<?= $servicoId ?>')
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                abrirModalCheckout(
+                                    data.servico.id,
+                                    data.servico.nome,
+                                    parseFloat(data.servico.preco)
+                                );
+                                <?php if (!empty($errosCheckout)): ?>
+                                    const mensagensErro = document.getElementById('mensagensErroCheckout');
+                                    const listaErros = document.getElementById('listaErrosCheckout');
+                                    listaErros.innerHTML = '';
+                                    <?php foreach ($errosCheckout as $erro): ?>
+                                        const li = document.createElement('li');
+                                        li.textContent = <?= json_encode($erro, JSON_UNESCAPED_UNICODE) ?>;
+                                        listaErros.appendChild(li);
+                                    <?php endforeach; ?>
+                                    mensagensErro.classList.remove('hidden');
+                                <?php endif; ?>
+                            }
+                        });
+                <?php endif; ?>
+            });
+        <?php endif; ?>
+
+        // Verificar sucesso de compra
+        <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'compra'): ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    window.location.href = 'dashboard.php';
+                }, 500);
+            });
+        <?php endif; ?>
+
+        // Verificar se serviços foram inseridos
+        <?php if (isset($_GET['servicos_inseridos'])): 
+            $inseridos = $_SESSION['servicos_inseridos'] ?? 0;
+            unset($_SESSION['servicos_inseridos']);
+        ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                <?php if ($inseridos > 0): ?>
+                    alert('Serviços inseridos com sucesso! <?= $inseridos ?> serviço(s) adicionado(s) ao banco de dados.');
+                <?php else: ?>
+                    // Serviços já existiam
+                <?php endif; ?>
+                setTimeout(() => {
+                    window.location.href = 'dashboard.php';
+                }, 100);
+            });
+        <?php endif; ?>
+
+        // Verificar erro ao inserir serviços
+        <?php if (isset($_GET['erro']) && $_GET['erro'] == 'servicos'): 
+            $erroMsg = $_SESSION['erro_servicos'] ?? 'Erro desconhecido';
+            unset($_SESSION['erro_servicos']);
+        ?>
+            document.addEventListener('DOMContentLoaded', function() {
+                alert('Erro ao inserir serviços: <?= esc(addslashes($erroMsg)) ?>');
             });
         <?php endif; ?>
     </script>

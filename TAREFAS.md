@@ -130,6 +130,24 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Confirmação antes de excluir
 - [ ] Vincular serviços (banho & tosa, adestramento, passeios) aos pets
 
+### 9. Sistema de Serviços e Compra
+- [ ] Criar tabela `servicos` no banco de dados
+- [ ] Campos: id, nome, descricao, preco, duracao, tipo (banho_tosa/adestramento/passeios), ativo
+- [ ] Criar tabela `agendamentos` ou `compras` no banco de dados
+- [ ] Campos: id, usuario_id, pet_id, servico_id, data_agendamento, status, valor_pago, data_criacao
+- [ ] Interface no dashboard para visualizar serviços disponíveis
+- [ ] Cards visuais para cada serviço com informações (nome, descrição, preço)
+- [ ] Modal ou página para selecionar pet e agendar/comprar serviço
+- [ ] Seleção de pet vinculado ao usuário para o serviço
+- [ ] Processo de compra/agendamento de serviço
+- [ ] Backend para processar compra/agendamento (`servicos/comprar.php` ou `agendamentos/create.php`)
+- [ ] Validação de dados (pet existe, serviço existe, usuário autenticado)
+- [ ] Exibir serviços agendados/comprados no dashboard
+- [ ] Histórico de serviços por pet
+- [ ] Status dos serviços (pendente, confirmado, concluído, cancelado)
+- [ ] Mensagens de erro/sucesso
+- [ ] Design responsivo e moderno
+
 ---
 
 ## 📁 Estrutura de Arquivos Sugerida
