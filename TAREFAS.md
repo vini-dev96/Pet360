@@ -131,22 +131,44 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [ ] Vincular serviços (banho & tosa, adestramento, passeios) aos pets
 
 ### 9. Sistema de Serviços e Compra
-- [ ] Criar tabela `servicos` no banco de dados
-- [ ] Campos: id, nome, descricao, preco, duracao, tipo (banho_tosa/adestramento/passeios), ativo
-- [ ] Criar tabela `agendamentos` ou `compras` no banco de dados
-- [ ] Campos: id, usuario_id, pet_id, servico_id, data_agendamento, status, valor_pago, data_criacao
-- [ ] Interface no dashboard para visualizar serviços disponíveis
-- [ ] Cards visuais para cada serviço com informações (nome, descrição, preço)
-- [ ] Modal ou página para selecionar pet e agendar/comprar serviço
-- [ ] Seleção de pet vinculado ao usuário para o serviço
-- [ ] Processo de compra/agendamento de serviço
-- [ ] Backend para processar compra/agendamento (`servicos/comprar.php` ou `agendamentos/create.php`)
-- [ ] Validação de dados (pet existe, serviço existe, usuário autenticado)
-- [ ] Exibir serviços agendados/comprados no dashboard
-- [ ] Histórico de serviços por pet
-- [ ] Status dos serviços (pendente, confirmado, concluído, cancelado)
-- [ ] Mensagens de erro/sucesso
-- [ ] Design responsivo e moderno
+- [x] Criar tabela `servicos` no banco de dados
+- [x] Campos: id, nome, descricao, preco, duracao, tipo (banho_tosa/adestramento/passeios), ativo
+- [x] Criar tabela `agendamentos` no banco de dados
+- [x] Campos: id, usuario_id, pet_id, servico_id, data_agendamento, status, valor_pago, data_criacao
+- [x] Interface no dashboard para visualizar serviços disponíveis
+- [x] Cards visuais para cada serviço com informações (nome, descrição, preço)
+- [x] Modal para selecionar pet e agendar/comprar serviço
+- [x] Seleção de pet vinculado ao usuário para o serviço
+- [x] Processo de compra/agendamento de serviço
+- [x] Backend para processar compra/agendamento (`agendamentos/create.php`)
+- [x] Validação de dados (pet existe, serviço existe, usuário autenticado)
+- [x] Exibir serviços agendados/comprados no dashboard
+- [x] Status dos serviços (pendente, confirmado, concluído, cancelado)
+- [x] Mensagens de erro/sucesso
+- [x] Design responsivo e moderno
+- [x] Botão "Agendar Serviço" nos cards dos pets
+- [x] Modal de seleção de serviço para pet específico
+- [x] Ícones e cores diferenciadas por tipo de serviço
+- [x] Script PHP para inserir serviços automaticamente (`servicos/init.php`)
+- [ ] **Validar todos os incrementos do sistema de serviços**
+  - [ ] Testar fluxo completo de compra de serviços
+  - [ ] Validar integração entre pets e serviços
+  - [ ] Verificar se todos os serviços (banho_tosa, adestramento, passeios) estão funcionando corretamente
+  - [ ] Testar validações de dados (pet, serviço, data)
+  - [ ] Verificar exibição de serviços agendados
+  - [ ] Testar diferentes status de agendamento
+  - [ ] Validar mensagens de erro e sucesso
+- [ ] **Integração com Google Calendar**
+  - [ ] Criar conta de serviço Google Cloud ou usar OAuth
+  - [ ] Configurar API do Google Calendar
+  - [ ] Obter credenciais (Client ID e Client Secret)
+  - [ ] Implementar autenticação OAuth 2.0
+  - [ ] Criar evento no Google Calendar ao agendar serviço
+  - [ ] Incluir informações do pet e serviço no evento
+  - [ ] Adicionar link do evento no agendamento
+  - [ ] Sincronizar atualizações de status com o calendário
+  - [ ] Permitir cancelamento de evento no calendário
+  - [ ] Notificações de lembretes (opcional)
 
 ---
 
