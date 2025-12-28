@@ -268,7 +268,7 @@ $business = [
                                     </div>
                                 </div>
                                 <div class="flex gap-1">
-                                    <button onclick="abrirModalEditarPet(<?= $pet['id'] ?>, '<?= esc(addslashes($pet['nome'])) ?>', '<?= esc(addslashes($pet['tipo'])) ?>', '<?= esc(addslashes($pet['raca'] ?? '')) ?>', <?= $pet['idade'] ?? 'null' ?>, '<?= esc(addslashes($pet['foto'] ?? '')) ?>')" class="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
+                                    <button onclick="abrirModalEditarPet(<?= $pet['id'] ?>)" class="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
@@ -504,7 +504,7 @@ $business = [
                                 >
                                 <p class="text-xs text-slate-500 mt-1">Formatos aceitos: JPG, PNG, GIF (máx. 5MB)</p>
                             </div>
-                            <div id="previewFotoEditar" class="w-20 h-20 rounded-lg overflow-hidden border border-slate-200">
+                            <div id="previewFotoEditar" class="w-20 h-20 rounded-lg overflow-hidden border border-slate-200 hidden">
                                 <img id="imgPreviewEditar" src="" alt="Preview" class="w-full h-full object-cover">
                             </div>
                         </div>
@@ -581,6 +581,56 @@ $business = [
         </div>
     </div>
 
+    <!-- Modal Confirmar Exclusão de Pet -->
+    <div id="modalExcluirPet" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="modal-content bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4">
+            <div class="p-8">
+                <!-- Header do Modal -->
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-extrabold text-slate-900">Confirmar Exclusão</h2>
+                    <button onclick="fecharModalExcluirPet()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Conteúdo -->
+                <div class="text-center mb-6">
+                    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                        <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">Tem certeza que deseja excluir?</h3>
+                    <p class="text-sm text-slate-600 mb-1">
+                        O pet <strong id="nomePetExcluir" class="text-slate-900"></strong> será permanentemente removido.
+                    </p>
+                    <p class="text-xs text-red-600 font-semibold mt-2">Esta ação não pode ser desfeita!</p>
+                </div>
+
+                <!-- Botões -->
+                <div class="flex gap-3">
+                    <button 
+                        type="button"
+                        onclick="fecharModalExcluirPet()"
+                        class="flex-1 px-6 py-3 text-base font-semibold rounded-2xl border btn-secondary hover:shadow-md transition-all"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        type="button"
+                        id="btnConfirmarExcluir"
+                        onclick="executarExcluirPet()"
+                        class="flex-1 px-6 py-3 text-base font-semibold rounded-2xl border text-white bg-red-600 hover:bg-red-700 border-red-600 hover:border-red-700 hover:shadow-md transition-all"
+                    >
+                        Excluir Pet
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         /* Modal Backdrop */
         .modal-backdrop {
@@ -616,11 +666,15 @@ $business = [
             transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
-        #modalAdicionarPet.show {
+        #modalAdicionarPet.show,
+        #modalEditarPet.show,
+        #modalExcluirPet.show {
             display: flex !important;
         }
         
-        #modalAdicionarPet.show .modal-content {
+        #modalAdicionarPet.show .modal-content,
+        #modalEditarPet.show .modal-content,
+        #modalExcluirPet.show .modal-content {
             animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
         
@@ -639,11 +693,15 @@ $business = [
         }
         
         /* Animação de saída */
-        #modalAdicionarPet.closing .modal-content {
+        #modalAdicionarPet.closing .modal-content,
+        #modalEditarPet.closing .modal-content,
+        #modalExcluirPet.closing .modal-content {
             animation: modalSlideOut 0.3s ease-in forwards;
         }
         
-        #modalAdicionarPet.closing {
+        #modalAdicionarPet.closing,
+        #modalEditarPet.closing,
+        #modalExcluirPet.closing {
             animation: fadeOutBackdrop 0.3s ease-in forwards;
         }
         
@@ -709,7 +767,18 @@ $business = [
         // Fechar modal com ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                fecharModalAdicionarPet();
+                const modalAdicionar = document.getElementById('modalAdicionarPet');
+                const modalEditar = document.getElementById('modalEditarPet');
+                const modalExcluir = document.getElementById('modalExcluirPet');
+                if (modalAdicionar.classList.contains('show')) {
+                    fecharModalAdicionarPet();
+                }
+                if (modalEditar.classList.contains('show')) {
+                    fecharModalEditarPet();
+                }
+                if (modalExcluir.classList.contains('show')) {
+                    fecharModalExcluirPet();
+                }
             }
         });
 
@@ -751,28 +820,49 @@ $business = [
         <?php endif; ?>
 
         // Funções para modal de editar pet
-        function abrirModalEditarPet(id, nome, tipo, raca, idade, foto) {
-            document.getElementById('edit_pet_id').value = id;
-            document.getElementById('edit_pet_nome').value = nome;
-            document.getElementById('edit_pet_tipo').value = tipo;
-            document.getElementById('edit_pet_raca').value = raca || '';
-            document.getElementById('edit_pet_idade').value = idade || '';
-            
-            const previewDiv = document.getElementById('previewFotoEditar');
-            const previewImg = document.getElementById('imgPreviewEditar');
-            if (foto) {
-                previewImg.src = foto;
-                previewDiv.classList.remove('hidden');
-            } else {
-                previewDiv.classList.add('hidden');
-            }
-            
-            const modal = document.getElementById('modalEditarPet');
-            modal.style.display = 'flex';
-            setTimeout(() => {
-                modal.classList.add('show');
-            }, 10);
-            document.body.style.overflow = 'hidden';
+        function abrirModalEditarPet(id) {
+            // Buscar dados do pet via API
+            fetch('pets/get.php?id=' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.pet) {
+                        const pet = data.pet;
+                        
+                        // Preencher formulário
+                        document.getElementById('edit_pet_id').value = pet.id;
+                        document.getElementById('edit_pet_nome').value = pet.nome || '';
+                        document.getElementById('edit_pet_tipo').value = pet.tipo || '';
+                        document.getElementById('edit_pet_raca').value = pet.raca || '';
+                        document.getElementById('edit_pet_idade').value = pet.idade || '';
+                        
+                        // Preview da foto
+                        const previewDiv = document.getElementById('previewFotoEditar');
+                        const previewImg = document.getElementById('imgPreviewEditar');
+                        if (pet.foto) {
+                            previewImg.src = pet.foto;
+                            previewDiv.classList.remove('hidden');
+                        } else {
+                            previewDiv.classList.add('hidden');
+                        }
+                        
+                        // Limpar mensagens de erro
+                        document.getElementById('mensagensErroEditarPet').classList.add('hidden');
+                        
+                        // Abrir modal
+                        const modal = document.getElementById('modalEditarPet');
+                        modal.style.display = 'flex';
+                        setTimeout(() => {
+                            modal.classList.add('show');
+                        }, 10);
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        alert('Erro ao carregar dados do pet. Tente novamente.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar pet:', error);
+                    alert('Erro ao carregar dados do pet. Tente novamente.');
+                });
         }
 
         function fecharModalEditarPet() {
@@ -796,12 +886,49 @@ $business = [
             }
         });
 
-        // Função para confirmar exclusão
+        // Variáveis globais para exclusão
+        let petIdParaExcluir = null;
+
+        // Função para abrir modal de exclusão
         function confirmarExcluirPet(id, nome) {
-            if (confirm('Tem certeza que deseja excluir o pet "' + nome + '"? Esta ação não pode ser desfeita.')) {
-                window.location.href = 'pets/delete.php?id=' + id;
+            petIdParaExcluir = id;
+            document.getElementById('nomePetExcluir').textContent = nome;
+            
+            const modal = document.getElementById('modalExcluirPet');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Função para fechar modal de exclusão
+        function fecharModalExcluirPet() {
+            const modal = document.getElementById('modalExcluirPet');
+            modal.classList.add('closing');
+            modal.classList.remove('show');
+            
+            setTimeout(() => {
+                modal.classList.remove('closing');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+                petIdParaExcluir = null;
+            }, 300);
+        }
+
+        // Função para executar exclusão
+        function executarExcluirPet() {
+            if (petIdParaExcluir) {
+                window.location.href = 'pets/delete.php?id=' + petIdParaExcluir;
             }
         }
+
+        // Fechar modal de exclusão ao clicar fora
+        document.getElementById('modalExcluirPet').addEventListener('click', function(e) {
+            if (e.target === this) {
+                fecharModalExcluirPet();
+            }
+        });
 
         // Função para preview de foto
         function previewFoto(input, previewId) {
@@ -829,32 +956,23 @@ $business = [
         ?>
             document.addEventListener('DOMContentLoaded', function() {
                 <?php if ($petId): ?>
-                    // Buscar dados do pet para preencher o formulário
-                    fetch('pets/get.php?id=<?= $petId ?>')
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                abrirModalEditarPet(
-                                    data.pet.id,
-                                    data.pet.nome,
-                                    data.pet.tipo,
-                                    data.pet.raca || '',
-                                    data.pet.idade || null,
-                                    data.pet.foto || ''
-                                );
-                                <?php if (!empty($errosEditarPet)): ?>
-                                    const mensagensErro = document.getElementById('mensagensErroEditarPet');
-                                    const listaErros = document.getElementById('listaErrosEditarPet');
-                                    listaErros.innerHTML = '';
-                                    <?php foreach ($errosEditarPet as $erro): ?>
-                                        const li = document.createElement('li');
-                                        li.textContent = <?= json_encode($erro, JSON_UNESCAPED_UNICODE) ?>;
-                                        listaErros.appendChild(li);
-                                    <?php endforeach; ?>
-                                    mensagensErro.classList.remove('hidden');
-                                <?php endif; ?>
-                            }
-                        });
+                    // Abrir modal e buscar dados do pet
+                    abrirModalEditarPet(<?= $petId ?>);
+                    
+                    // Exibir erros após o modal abrir
+                    setTimeout(() => {
+                        <?php if (!empty($errosEditarPet)): ?>
+                            const mensagensErro = document.getElementById('mensagensErroEditarPet');
+                            const listaErros = document.getElementById('listaErrosEditarPet');
+                            listaErros.innerHTML = '';
+                            <?php foreach ($errosEditarPet as $erro): ?>
+                                const li = document.createElement('li');
+                                li.textContent = <?= json_encode($erro, JSON_UNESCAPED_UNICODE) ?>;
+                                listaErros.appendChild(li);
+                            <?php endforeach; ?>
+                            mensagensErro.classList.remove('hidden');
+                        <?php endif; ?>
+                    }, 500);
                 <?php endif; ?>
             });
         <?php endif; ?>
@@ -863,7 +981,7 @@ $business = [
         <?php if (isset($_GET['sucesso']) && ($_GET['sucesso'] == 'editar_pet' || $_GET['sucesso'] == 'excluir_pet')): ?>
             document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
-                    location.reload();
+                    window.location.href = 'dashboard.php';
                 }, 500);
             });
         <?php endif; ?>

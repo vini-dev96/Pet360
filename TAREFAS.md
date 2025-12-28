@@ -123,7 +123,7 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Funcionalidade de editar pet (modal de edição)
 - [x] Backend para atualizar pet (`pets/update.php`)
 - [x] Atualização de foto (substitui foto antiga)
-- [ ] **Corrigir funcionalidade de editar pet (ainda não está funcionando corretamente)**
+- [x] **Corrigir funcionalidade de editar pet (ainda não está funcionando corretamente)** ✅
 - [x] Funcionalidade de excluir pet (hard delete - removido do banco)
 - [x] Backend para excluir pet (`pets/delete.php`)
 - [x] Botões de editar e excluir nos cards de pets

@@ -82,7 +82,7 @@ try {
     
     // Processar upload de nova foto (se houver)
     $foto = $pet['foto']; // Manter foto atual por padrão
-    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK && $_FILES['foto']['size'] > 0) {
         $file = $_FILES['foto'];
         $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         $maxSize = 5 * 1024 * 1024; // 5MB
@@ -124,7 +124,7 @@ try {
     // Atualizar pet no banco
     $stmt = $pdo->prepare("
         UPDATE pets 
-        SET nome = :nome, tipo = :tipo, raca = :raca, idade = :idade, foto = :foto
+        SET nome = :nome, tipo = :tipo, raca = :raca, idade = :idade, foto = :foto, data_atualizacao = NOW()
         WHERE id = :id AND usuario_id = :usuario_id
     ");
     
@@ -134,8 +134,8 @@ try {
         'nome' => $nome,
         'tipo' => $tipo,
         'raca' => !empty($raca) ? $raca : null,
-        'idade' => $idade,
-        'foto' => $foto
+        'idade' => $idade !== null ? $idade : null,
+        'foto' => !empty($foto) ? $foto : null
     ]);
     
     // Sucesso - redirecionar para dashboard
