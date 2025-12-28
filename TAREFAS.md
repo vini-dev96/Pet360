@@ -87,12 +87,12 @@ Implementação de sistema de autenticação completo com criação de conta, lo
 - [x] Seções: perfil, serviços agendados, histórico, etc.
 - [x] Responsivo e moderno
 
-### 6. Redirecionamento e Proteção de Rotas
+### 6. Redirecionamento e Proteção de Rotas ✅
 - [x] Após login bem-sucedido → redirecionar para `dashboard.php`
-- [ ] Após registro bem-sucedido → redirecionar para `dashboard.php` (ou login)
+- [x] Após registro bem-sucedido → redirecionar para `dashboard.php` (login automático após registro)
 - [x] Proteger rotas que requerem autenticação
 - [x] Redirecionar usuários não autenticados para login
-- [ ] Redirecionar usuários autenticados que tentam acessar login/registro
+- [x] Redirecionar usuários autenticados que tentam acessar login/registro (redireciona para dashboard)
 - [x] Manter sessão ativa na home (index.php) quando usuário estiver logado
 - [x] Exibir informações do usuário logado no header da home
 - [x] Ocultar botões Login/Criar Conta quando usuário estiver autenticado

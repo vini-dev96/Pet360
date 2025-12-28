@@ -5,9 +5,10 @@
  */
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/session.php';
 
-// Iniciar sessÃ£o
-session_start();
+// Iniciar sessão
+startSecureSession();
 
 // Verificar se é uma requisição POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -97,9 +98,17 @@ try {
         'senha' => $senha_hash
     ]);
     
-    // Sucesso - redirecionar para index com sucesso
-    $_SESSION['sucesso_registro'] = true;
-    header('Location: ../index.php?sucesso=registro');
+    // Obter ID do usuário recém-criado
+    $usuario_id = $pdo->lastInsertId();
+    
+    // Login automático após registro bem-sucedido
+    $_SESSION['usuario_id'] = $usuario_id;
+    $_SESSION['usuario_nome'] = $nome;
+    $_SESSION['usuario_email'] = $email;
+    $_SESSION['usuario_logado'] = true;
+    
+    // Sucesso - redirecionar para dashboard
+    header('Location: ../dashboard.php');
     exit;
     
 } catch (PDOException $e) {

@@ -4,8 +4,10 @@
  * Pet360 - Sistema de Autenticação
  */
 
+require_once __DIR__ . '/../config/session.php';
+
 // Iniciar sessão
-session_start();
+startSecureSession();
 
 // Destruir todas as variáveis de sessão
 $_SESSION = array();

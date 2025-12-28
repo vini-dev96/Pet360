@@ -1,6 +1,7 @@
 <?php
 // dashboard.php — Dashboard do Usuário
-session_start();
+require_once __DIR__ . '/config/session.php';
+startSecureSession();
 
 // Verificar se o usuário está autenticado (middleware)
 if (!isset($_SESSION['usuario_logado']) || !$_SESSION['usuario_logado']) {

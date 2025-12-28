@@ -5,9 +5,10 @@
  */
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/session.php';
 
 // Iniciar sessão
-session_start();
+startSecureSession();
 
 // Verificar se o usuário está autenticado
 if (!isset($_SESSION['usuario_logado']) || !$_SESSION['usuario_logado']) {

@@ -1,6 +1,7 @@
 <?php
 // index.php — Landing page Pets (PHP + Tailwind)
-session_start();
+require_once __DIR__ . '/config/session.php';
+startSecureSession();
 
 // Verificar se o usuário está logado
 $usuarioLogado = isset($_SESSION['usuario_logado']) && $_SESSION['usuario_logado'];
@@ -872,6 +873,11 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
   <script>
     // Funções para abrir/fechar modal
     function abrirModalCriarConta() {
+      <?php if ($usuarioLogado): ?>
+        // Usuário já está logado, redirecionar para dashboard
+        window.location.href = 'dashboard.php';
+        return;
+      <?php endif; ?>
       const modal = document.getElementById('modalCriarConta');
       modal.style.display = 'flex';
       // Pequeno delay para garantir que o display está aplicado antes da animação
@@ -902,6 +908,11 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
 
     // Funções para abrir/fechar modal de login
     function abrirModalLogin() {
+      <?php if ($usuarioLogado): ?>
+        // Usuário já está logado, redirecionar para dashboard
+        window.location.href = 'dashboard.php';
+        return;
+      <?php endif; ?>
       const modal = document.getElementById('modalLogin');
       modal.style.display = 'flex';
       // Pequeno delay para garantir que o display está aplicado antes da animação
