@@ -220,12 +220,12 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
     <div class="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div>
         <span class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-800">Serviços Pet360</span>
-        <h2 class="mt-2 text-3xl font-extrabold">Adestramento, cuidados e companhia em um só lugar</h2>
+        <h2 class="mt-2 text-3xl font-extrabold">Adestramento positivo e personalizado</h2>
         <p class="mt-2 text-slate-700 max-w-2xl">Planos pensados para rotina de filhotes, adultos e seniores, com acompanhamento contínuo e feedback transparente.</p>
       </div>
       <a href="<?= esc($business['whatsapp']) ?>" class="rounded-2xl px-5 py-2 text-sm font-semibold border btn-secondary">Ver disponibilidade</a>
     </div>
-    <div class="mt-10 grid md:grid-cols-3 gap-6">
+    <div class="mt-10 grid md:grid-cols-1 gap-6 justify-center max-w-2xl mx-auto">
       <?php
       $services = [
         [
@@ -234,20 +234,6 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
           'desc' => 'Protocolos personalizados para cada fase da vida do pet, com reforço positivo e acompanhamento familiar.',
           'items'=> ['Avaliação comportamental completa','Sessões presenciais e atividades guiadas em casa','Relatórios com vídeos e metas semanais'],
           'cta'  => 'Agendar avaliação'
-        ],
-        [
-          'slug' => 'banho',
-          'title'=> 'Banho & tosa premium',
-          'desc' => 'Higiene completa, produtos hipoalergênicos e ambiente seguro para que o pet se sinta tranquilo.',
-          'items'=> ['Banho terapêutico e tosa higiênica','Escovação, ouvidos e corte de unhas','Antes e depois para compartilhar'],
-          'cta'  => 'Reservar horário'
-        ],
-        [
-          'slug' => 'passeios',
-          'title'=> 'Pet sitter & passeios',
-          'desc' => 'Companhia carinhosa quando você não pode estar, com alimentação, passeios monitorados e muita diversão.',
-          'items'=> ['Monitoramento GPS e fotos em tempo real','Alimentação conforme rotina do pet','Relatório diário com check-ins'],
-          'cta'  => 'Montar pacote'
         ],
       ];
       foreach($services as $service):

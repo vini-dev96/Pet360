@@ -41,7 +41,7 @@ try {
     
     // Buscar serviços disponíveis (bloco separado - opcional)
     try {
-        $stmtServicos = $pdo->prepare("SELECT id, nome, descricao, preco, duracao, tipo FROM servicos WHERE ativo = 1 ORDER BY tipo, nome");
+        $stmtServicos = $pdo->prepare("SELECT id, nome, descricao, preco, duracao, tipo FROM servicos WHERE ativo = 1 AND tipo = 'adestramento' ORDER BY tipo, nome");
         $stmtServicos->execute();
         $servicos = $stmtServicos->fetchAll();
     } catch (PDOException $e) {
@@ -405,7 +405,7 @@ $business = [
                         <a 
                             href="servicos/init.php" 
                             class="inline-block rounded-xl px-6 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md transition-all"
-                            onclick="return confirm('Deseja inserir os serviços padrão (Banho & Tosa, Adestramento, Passeios) no banco de dados?');"
+                            onclick="return confirm('Deseja inserir os serviços padrão (Adestramento) no banco de dados?');"
                         >
                             Inserir Serviços Padrão
                         </a>
