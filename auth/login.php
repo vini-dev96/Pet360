@@ -80,8 +80,12 @@ try {
     $_SESSION['usuario_email'] = $usuario['email'];
     $_SESSION['usuario_logado'] = true;
     
-    // Redirecionar para dashboard
-    header('Location: ../dashboard.php');
+    // Redirecionar admin para dashboard master, outros para dashboard normal
+    if ($usuario['nome'] === 'admin' || $usuario['email'] === 'admin@pet360.com.br') {
+        header('Location: ../dashboard_master.php');
+    } else {
+        header('Location: ../dashboard.php');
+    }
     exit;
     
 } catch (PDOException $e) {

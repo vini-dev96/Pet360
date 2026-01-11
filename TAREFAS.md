@@ -170,6 +170,61 @@ Implementação de sistema de autenticação completo com criação de conta, lo
   - [ ] Permitir cancelamento de evento no calendário
   - [ ] Notificações de lembretes (opcional)
 
+### 10. Dashboard Master (Administrador) 🆕
+- [ ] Criar usuário administrador fixo no banco de dados
+  - [ ] Criar usuário com nome "admin" e senha "admin" (hash da senha)
+  - [ ] Usuário deve ser inserido diretamente no banco de dados
+  - [ ] Usar password_hash para hash da senha "admin"
+- [ ] Criar página `dashboard_master.php` (dashboard administrativo)
+  - [ ] Proteção de rota: verificar se usuário logado é o "admin" (por nome/email)
+  - [ ] Redirecionar outros usuários para dashboard normal
+  - [ ] Design consistente com o tema do site
+  - [ ] Menu de navegação específico para administrador
+  - [ ] Botão de logout
+  - [ ] Responsivo e moderno
+- [ ] Gerenciamento de Pessoas/Usuários (Tutores)
+  - [ ] Interface para criar novos usuários (tutores)
+  - [ ] Formulário de cadastro simplificado: nome e telefone
+  - [ ] Validação de dados (campos obrigatórios)
+  - [ ] Lista de todos os tutores cadastrados
+  - [ ] Busca/filtro de tutores
+  - [ ] Funcionalidade de editar tutor
+  - [ ] Funcionalidade de excluir tutor (com confirmação)
+  - [ ] Visualização de detalhes do tutor
+- [ ] Gerenciamento de Pets (vinculação a pessoas)
+  - [ ] Interface para criar novos pets
+  - [ ] Vincular pet a um usuário específico (dropdown/seleção)
+  - [ ] Formulário de cadastro: nome, idade, raça, tipo, foto
+  - [ ] Upload de foto do pet
+  - [ ] Lista de todos os pets cadastrados (com informação do tutor)
+  - [ ] Busca/filtro de pets (por tutor, nome, tipo)
+  - [ ] Funcionalidade de editar pet
+  - [ ] Funcionalidade de excluir pet
+  - [ ] Visualização de detalhes do pet
+- [ ] Sistema de Consultas de Adestramento
+  - [ ] Criar tabela `consultas_adestramento` no banco de dados
+  - [ ] Campos: id, pet_id, usuario_id, data_consulta, observacoes, data_criacao, data_atualizacao
+  - [ ] Interface para marcar consultas de adestramento
+  - [ ] Formulário: selecionar pet, data e hora da consulta
+  - [ ] Validação de data (não permitir datas passadas)
+  - [ ] Lista de consultas agendadas (calendário ou lista)
+  - [ ] Visualização de consultas por pet
+  - [ ] Funcionalidade de editar consulta (alterar data)
+  - [ ] Funcionalidade de cancelar/excluir consulta
+- [ ] Sistema de Observações e Evolução do Pet
+  - [ ] Adicionar campo `observacoes` na tabela `consultas_adestramento` (texto longo)
+  - [ ] Interface para adicionar observações após cada consulta
+  - [ ] Formulário de observações (textarea grande)
+  - [ ] Salvar observações vinculadas à data da consulta
+  - [ ] Validação: só permitir adicionar observação se a data da consulta estiver correta/completada
+  - [ ] Criar linha do tempo (timeline) de evolução do pet
+  - [ ] Exibir histórico cronológico de consultas e observações
+  - [ ] Visualização por data (mais recente primeiro ou mais antiga primeiro)
+  - [ ] Design de timeline vertical com datas e observações
+  - [ ] Possibilidade de visualizar curva de evolução (gráfico - futuro)
+  - [ ] Busca/filtro de observações por período
+  - [ ] Exportar histórico de evolução (PDF/Excel - futuro)
+
 ---
 
 ## 📁 Estrutura de Arquivos Sugerida
