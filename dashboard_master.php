@@ -272,6 +272,68 @@ $business = [
             </div>
         </div>
 
+        <!-- Seção Consultas -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-extrabold text-slate-900">Consultas de Adestramento</h2>
+                <button onclick="abrirModalNovaObservacao()" class="rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
+                    + Nova Observação
+                </button>
+            </div>
+            <div class="card overflow-hidden">
+                <?php if (empty($consultas)): ?>
+                    <div class="text-center py-12">
+                        <p class="text-slate-500 text-sm">Nenhuma consulta agendada</p>
+                    </div>
+                <?php else: ?>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Data/Hora</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Pet</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Tutor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Observações</th>
+                                    <th class="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                                <?php foreach ($consultas as $consulta): 
+                                    $data_consulta = new DateTime($consulta['data_consulta']);
+                                    $data_formatada = $data_consulta->format('d/m/Y H:i');
+                                ?>
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm font-semibold text-slate-900"><?= esc($data_formatada) ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-slate-900"><?= esc($consulta['pet_nome']) ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="text-sm text-slate-600"><?= esc($consulta['tutor_nome']) ?></div>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <div class="text-sm text-slate-600">
+                                                <?php if ($consulta['observacoes']): ?>
+                                                    <?= esc(strlen($consulta['observacoes']) > 50 ? substr($consulta['observacoes'], 0, 50) . '...' : $consulta['observacoes']) ?>
+                                                <?php else: ?>
+                                                    <span class="text-slate-400">Sem observações</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button onclick="abrirModalEditarConsulta(<?= $consulta['id'] ?>, '<?= esc(addslashes($data_consulta->format('Y-m-d'))) ?>', '<?= esc(addslashes($data_consulta->format('H:i'))) ?>')" class="text-emerald-600 hover:text-emerald-700 mr-3">Editar</button>
+                                            <button onclick="confirmarExcluirConsulta(<?= $consulta['id'] ?>, '<?= esc(addslashes($consulta['pet_nome'])) ?>')" class="text-red-600 hover:text-red-700">Excluir</button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </section>
+
         <!-- Seção Tutores -->
         <section class="mb-12">
             <div class="flex items-center justify-between mb-6">
@@ -375,68 +437,6 @@ $business = [
                             </div>
                         </div>
                     <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
-        </section>
-
-        <!-- Seção Consultas -->
-        <section class="mb-12">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-extrabold text-slate-900">Consultas de Adestramento</h2>
-                <button onclick="abrirModalNovaObservacao()" class="rounded-xl px-4 py-2 text-sm font-semibold shadow-sm border btn-primary hover:shadow-md">
-                    + Nova Observação
-                </button>
-            </div>
-            <div class="card overflow-hidden">
-                <?php if (empty($consultas)): ?>
-                    <div class="text-center py-12">
-                        <p class="text-slate-500 text-sm">Nenhuma consulta agendada</p>
-                    </div>
-                <?php else: ?>
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-slate-50 border-b border-slate-200">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Data/Hora</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Pet</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Tutor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Observações</th>
-                                    <th class="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200">
-                                <?php foreach ($consultas as $consulta): 
-                                    $data_consulta = new DateTime($consulta['data_consulta']);
-                                    $data_formatada = $data_consulta->format('d/m/Y H:i');
-                                ?>
-                                    <tr class="hover:bg-slate-50">
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-semibold text-slate-900"><?= esc($data_formatada) ?></div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-slate-900"><?= esc($consulta['pet_nome']) ?></div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm text-slate-600"><?= esc($consulta['tutor_nome']) ?></div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm text-slate-600">
-                                                <?php if ($consulta['observacoes']): ?>
-                                                    <?= esc(strlen($consulta['observacoes']) > 50 ? substr($consulta['observacoes'], 0, 50) . '...' : $consulta['observacoes']) ?>
-                                                <?php else: ?>
-                                                    <span class="text-slate-400">Sem observações</span>
-                                                <?php endif; ?>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button onclick="abrirModalEditarConsulta(<?= $consulta['id'] ?>, '<?= esc(addslashes($data_consulta->format('Y-m-d'))) ?>', '<?= esc(addslashes($data_consulta->format('H:i'))) ?>')" class="text-emerald-600 hover:text-emerald-700 mr-3">Editar</button>
-                                            <button onclick="confirmarExcluirConsulta(<?= $consulta['id'] ?>, '<?= esc(addslashes($consulta['pet_nome'])) ?>')" class="text-red-600 hover:text-red-700">Excluir</button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
                 <?php endif; ?>
             </div>
         </section>
@@ -803,12 +803,100 @@ $business = [
         function abrirModalEditarTutor(id, nome, telefone) {
             document.getElementById('edit_tutor_id').value = id;
             document.getElementById('edit_tutor_nome').value = nome;
-            document.getElementById('edit_tutor_telefone').value = telefone;
+            // Aplicar máscara de telefone ao carregar o valor
+            document.getElementById('edit_tutor_telefone').value = aplicarMascaraTelefone(telefone);
             const modal = document.getElementById('modalEditarTutor');
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
             document.body.style.overflow = 'hidden';
         }
+        
+        // Função para aplicar máscara de telefone brasileiro (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+        function aplicarMascaraTelefone(valor) {
+            if (!valor) return '';
+            // Remove tudo que não é número
+            let numeros = valor.toString().replace(/\D/g, '');
+            
+            // Limita a 11 dígitos (DDD + número)
+            if (numeros.length > 11) {
+                numeros = numeros.substring(0, 11);
+            }
+            
+            // Aplica a máscara
+            if (numeros.length <= 10) {
+                // Telefone fixo: (XX) XXXX-XXXX
+                if (numeros.length <= 2) {
+                    return numeros.length > 0 ? '(' + numeros : '';
+                } else if (numeros.length <= 6) {
+                    return '(' + numeros.substring(0, 2) + ') ' + numeros.substring(2);
+                } else {
+                    return '(' + numeros.substring(0, 2) + ') ' + numeros.substring(2, 6) + '-' + numeros.substring(6);
+                }
+            } else {
+                // Celular: (XX) XXXXX-XXXX
+                if (numeros.length <= 2) {
+                    return numeros.length > 0 ? '(' + numeros : '';
+                } else if (numeros.length <= 7) {
+                    return '(' + numeros.substring(0, 2) + ') ' + numeros.substring(2);
+                } else {
+                    return '(' + numeros.substring(0, 2) + ') ' + numeros.substring(2, 7) + '-' + numeros.substring(7);
+                }
+            }
+        }
+        
+        // Adicionar event listeners para máscara de telefone
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoTelefone = document.getElementById('tutor_telefone');
+            const campoEditTelefone = document.getElementById('edit_tutor_telefone');
+            
+            if (campoTelefone) {
+                campoTelefone.addEventListener('input', function(e) {
+                    let valor = e.target.value;
+                    let cursorPos = e.target.selectionStart;
+                    let valorAntes = valor.substring(0, cursorPos).replace(/\D/g, '').length;
+                    
+                    e.target.value = aplicarMascaraTelefone(valor);
+                    
+                    // Ajustar posição do cursor
+                    let novoCursorPos = 0;
+                    let contador = 0;
+                    for (let i = 0; i < e.target.value.length; i++) {
+                        if (/\d/.test(e.target.value[i])) {
+                            contador++;
+                            if (contador === valorAntes) {
+                                novoCursorPos = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                    e.target.setSelectionRange(novoCursorPos, novoCursorPos);
+                });
+            }
+            
+            if (campoEditTelefone) {
+                campoEditTelefone.addEventListener('input', function(e) {
+                    let valor = e.target.value;
+                    let cursorPos = e.target.selectionStart;
+                    let valorAntes = valor.substring(0, cursorPos).replace(/\D/g, '').length;
+                    
+                    e.target.value = aplicarMascaraTelefone(valor);
+                    
+                    // Ajustar posição do cursor
+                    let novoCursorPos = 0;
+                    let contador = 0;
+                    for (let i = 0; i < e.target.value.length; i++) {
+                        if (/\d/.test(e.target.value[i])) {
+                            contador++;
+                            if (contador === valorAntes) {
+                                novoCursorPos = i + 1;
+                                break;
+                            }
+                        }
+                    }
+                    e.target.setSelectionRange(novoCursorPos, novoCursorPos);
+                });
+            }
+        });
         function fecharModalEditarTutor() {
             const modal = document.getElementById('modalEditarTutor');
             modal.classList.remove('show');
@@ -1019,25 +1107,22 @@ $business = [
         // Mensagens de sucesso
         <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'tutor'): ?>
             document.addEventListener('DOMContentLoaded', function() {
-                alert('Tutor cadastrado com sucesso!');
-                setTimeout(() => {
-                    window.location.href = 'dashboard_master.php';
+                setTimeout(function() {
+                    abrirModalSucesso('Sucesso!', 'Tutor cadastrado com sucesso!');
                 }, 100);
             });
         <?php endif; ?>
         <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'pet'): ?>
             document.addEventListener('DOMContentLoaded', function() {
-                alert('Pet cadastrado com sucesso!');
-                setTimeout(() => {
-                    window.location.href = 'dashboard_master.php';
+                setTimeout(function() {
+                    abrirModalSucesso('Sucesso!', 'Pet cadastrado com sucesso!');
                 }, 100);
             });
         <?php endif; ?>
         <?php if (isset($_GET['sucesso']) && $_GET['sucesso'] == 'consulta'): ?>
             document.addEventListener('DOMContentLoaded', function() {
-                alert('Consulta agendada com sucesso!');
-                setTimeout(() => {
-                    window.location.href = 'dashboard_master.php';
+                setTimeout(function() {
+                    abrirModalSucesso('Sucesso!', 'Consulta agendada com sucesso!');
                 }, 100);
             });
         <?php endif; ?>
