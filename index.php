@@ -195,7 +195,7 @@ $phoneTel = preg_replace('/\s|\(|\)|-|\+/', '', $business['phone']);
   <!-- Como funciona -->
   <section class="container mx-auto px-4 py-14" id="como-funciona">
     <span class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">Como funciona</span>
-    <h2 class="mt-2 text-3xl font-extrabold">Seu pet no centro de tudo em quatro passos</h2>
+    <h2 class="mt-2 text-3xl font-extrabold">Seu aaaaaaaaaaaaaaaa</h2>
     <p class="mt-2 text-slate-700 max-w-2xl">Do primeiro contato ao acompanhamento na volta pra casa, a Pet360 cuida de cada detalhe com carinho e transparência.</p>
     <div class="mt-8 grid md:grid-cols-4 gap-5">
       <?php
